@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9ff73543-98e0-4431-8a76-d22df5d7704a" name="Default" comment="" />
+    <list default="true" id="2af47fa2-13e6-4dc7-a8ce-fd4b9eaced11" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -15,131 +15,34 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="KThread.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/KThread.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1035">
-              <caret line="71" column="51" selection-start-line="71" selection-start-column="51" selection-end-line="71" selection-end-column="51" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ThreadedKernel.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ThreadedKernel.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2415">
-              <caret line="165" column="28" selection-start-line="165" selection-start-column="28" selection-end-line="165" selection-end-column="28" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Scheduler.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Scheduler.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1140">
-              <caret line="77" column="32" selection-start-line="77" selection-start-column="32" selection-end-line="77" selection-end-column="32" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ThreadQueue.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ThreadQueue.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="690">
-              <caret line="46" column="22" selection-start-line="46" selection-start-column="22" selection-end-line="46" selection-end-column="22" />
-            </state>
-          </provider>
+      <file leaf-file-name="package.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/proj1/nachos/ag/package.html">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file leaf-file-name="PriorityScheduler.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/PriorityScheduler.java">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file leaf-file-name="Machine.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Machine.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="37" column="5" selection-start-line="37" selection-start-column="5" selection-end-line="37" selection-end-column="5" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#2359#2360#0" expanded="true" />
-                <element signature="e#2382#2383#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="328">
+              <caret line="108" column="7" lean-forward="true" selection-end-line="258" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Lib.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Lib.java">
+      <file leaf-file-name="Communicator.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Communicator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="29" column="19" selection-start-line="29" selection-start-column="19" selection-end-line="29" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Packet.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Packet.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Processor.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Processor.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="25" column="19" selection-start-line="25" selection-start-column="19" selection-end-line="25" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RoundRobinScheduler.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/RoundRobinScheduler.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="17" column="13" selection-start-line="17" selection-start-column="13" selection-end-line="17" selection-end-column="13" />
+            <state relative-caret-position="235">
+              <caret line="19" column="13" selection-start-line="19" selection-start-column="13" selection-end-line="19" selection-end-column="13" />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>join</find>
-      <find>finish</find>
-      <find>sleep</find>
-      <find>test</find>
-      <find>tcb</find>
-      <find>wait</find>
-    </findStrings>
-  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/proj1/machine/Processor.java" />
-        <option value="$PROJECT_DIR$/src/proj1/nachos/machine/NetworkLink.java" />
-        <option value="$PROJECT_DIR$/src/proj1/nachos/machine/threads/Boat.java" />
-        <option value="$PROJECT_DIR$/src/proj1/nachos/ag/AutoGrader.java" />
-        <option value="$PROJECT_DIR$/src/nachos/machine/StubFileSystem.java" />
-        <option value="$PROJECT_DIR$/src/proj1x/nachos/ag/AutoGrader.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/machine/Timer.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Lock.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Condition2.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Condition.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Semaphore.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/SynchList.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/AlarmTest.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Alarm.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Condition2Test.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/ThreadedKernel.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/Communicator.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/CommunicatorTest.java" />
-        <option value="$PROJECT_DIR$/proj1/nachos/threads/KThread.java" />
         <option value="$PROJECT_DIR$/proj1/nachos/threads/PriorityScheduler.java" />
       </list>
     </option>
@@ -162,10 +65,7 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="PhpServers">
-    <servers />
-  </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="y" value="23" />
     <option name="width" value="1440" />
     <option name="height" value="828" />
@@ -175,34 +75,30 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="AndroidView" />
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
-              <item name="nachos_plus_proj1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_plus_proj1" type="462c0819:PsiDirectoryNode" />
+              <item name="nachos_proj1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="nachos_proj1" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="nachos_plus_proj1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_plus_proj1" type="462c0819:PsiDirectoryNode" />
+              <item name="nachos_proj1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="nachos_proj1" type="462c0819:PsiDirectoryNode" />
               <item name="proj1" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="nachos_plus_proj1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_plus_proj1" type="462c0819:PsiDirectoryNode" />
-              <item name="proj1" type="462c0819:PsiDirectoryNode" />
-              <item name="nachos" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="nachos_plus_proj1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_plus_proj1" type="462c0819:PsiDirectoryNode" />
+              <item name="nachos_proj1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="nachos_proj1" type="462c0819:PsiDirectoryNode" />
               <item name="proj1" type="462c0819:PsiDirectoryNode" />
               <item name="nachos" type="462c0819:PsiDirectoryNode" />
-              <item name="machine" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="nachos_plus_proj1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_plus_proj1" type="462c0819:PsiDirectoryNode" />
+              <item name="nachos_proj1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="nachos_proj1" type="462c0819:PsiDirectoryNode" />
               <item name="proj1" type="462c0819:PsiDirectoryNode" />
               <item name="nachos" type="462c0819:PsiDirectoryNode" />
               <item name="threads" type="462c0819:PsiDirectoryNode" />
@@ -211,9 +107,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="AndroidView" />
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -231,11 +124,7 @@
       <recent name="nachos.threads" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/proj1/nachos/threads" />
       <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/proj1" />
-      <recent name="$PROJECT_DIR$/src" />
-      <recent name="$PROJECT_DIR$/src/proj1/nachos/machine" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -251,17 +140,6 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="Machine" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="nachos.machine.Machine" />
-      <module name="nachos_plus_proj1" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="nachos.machine.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-    </configuration>
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     </configuration>
@@ -303,38 +181,28 @@
       <properties />
       <listeners />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.Machine" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="9ff73543-98e0-4431-8a76-d22df5d7704a" name="Default" comment="" />
-      <created>1568435136283</created>
+      <changelist id="2af47fa2-13e6-4dc7-a8ce-fd4b9eaced11" name="Default" comment="" />
+      <created>1568621787642</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1568435136283</updated>
-      <workItem from="1568435138092" duration="215000" />
-      <workItem from="1568435413250" duration="321000" />
-      <workItem from="1568435784262" duration="22900000" />
-      <workItem from="1568522715156" duration="1516000" />
-      <workItem from="1568524942863" duration="10246000" />
-      <workItem from="1568542729356" duration="7408000" />
-      <workItem from="1568557847373" duration="39000" />
-      <workItem from="1568595463020" duration="2594000" />
+      <updated>1568621787642</updated>
+      <workItem from="1568621792231" duration="157000" />
+      <workItem from="1568621985755" duration="555000" />
+      <workItem from="1568622658216" duration="810000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45239000" />
+    <option name="totallyTimeSpent" value="1522000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="828" extended-state="0" />
+    <frame x="0" y="0" width="1440" height="900" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
@@ -346,12 +214,12 @@
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="right" id="Maven Projects" order="3" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.4377565" />
+      <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Capture Tool" order="2" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2746781" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25679544" />
       <window_info anchor="bottom" id="Problems" order="7" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -360,13 +228,12 @@
       <window_info anchor="right" id="Theme Preview" order="3" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Messages" order="7" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32969698" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -375,282 +242,84 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/proj1/nachos/threads/KThread.java</url>
-          <line>522</line>
-          <properties />
-        </line-breakpoint>
-      </breakpoints>
-      <option name="time" value="1" />
-    </breakpoint-manager>
-  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/nachos/machine/Lib.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/threads/Condition.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/threads/PriorityScheduler.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/threads/ThreadedKernel.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/security/NachosSecurityManager.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/machine/FileSystem.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/threads/Scheduler.java" />
-    <entry file="file://$PROJECT_DIR$/src/nachos/machine/StubFileSystem.java" />
     <entry file="file://$PROJECT_DIR$/proj1/nachos/ag/package.html">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/proj1x/nachos/ag/AutoGrader.java" />
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/TranslationEntry.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/PriorityScheduler.java">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/FileSystem.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Communicator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="19" column="13" selection-start-line="19" selection-start-column="13" selection-end-line="19" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/ag/package.html">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/security/NachosSecurityManager.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/PriorityScheduler.java">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/SerialConsole.java">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/ArrayFile.java">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Coff.java">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/OpenFileWithPosition.java">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nachos.conf">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/security/Privilege.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ThreadedKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="571">
-          <caret line="251" column="16" selection-start-line="251" selection-start-column="16" selection-end-line="251" selection-end-column="16" />
+        <state relative-caret-position="489">
+          <caret line="175" column="30" selection-start-line="175" selection-start-column="30" selection-end-line="175" selection-end-column="30" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Lock.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ElevatorController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1350">
-          <caret line="93" column="50" selection-start-line="92" selection-start-column="3" selection-end-line="93" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Timer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="900">
-          <caret line="60" column="16" selection-start-line="60" selection-start-column="16" selection-end-line="60" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/KThreadTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-900">
-          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/src.zip!/java/lang/Runnable.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="67" column="25" selection-start-line="67" selection-start-column="25" selection-end-line="67" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/src.zip!/java/lang/Thread.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="235">
-          <caret line="698" column="29" selection-start-line="698" selection-start-column="29" selection-end-line="698" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Kernel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="433">
-          <caret line="36" column="28" lean-forward="true" selection-start-line="36" selection-start-column="28" selection-end-line="36" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/ag/AutoGrader.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="244">
-          <caret line="170" column="15" selection-start-line="170" selection-start-column="15" selection-end-line="170" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/TCB.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="159" column="16" selection-start-line="159" selection-start-column="16" selection-end-line="159" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/AlarmTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="15" column="3" selection-start-line="15" selection-start-column="3" selection-end-line="15" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Alarm.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="51" column="32" selection-start-line="51" selection-start-column="32" selection-end-line="51" selection-end-column="32" />
+        <state relative-caret-position="120">
+          <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Condition2Test.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
-          <caret line="7" column="27" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="27" />
+          <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Condition2.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="2" selection-start-line="25" selection-start-column="2" selection-end-line="25" selection-end-column="2" />
+        <state relative-caret-position="235">
+          <caret line="30" column="13" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Condition.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1095">
-          <caret line="73" column="29" selection-start-line="73" selection-start-column="29" selection-end-line="73" selection-end-column="29" />
+        <state relative-caret-position="235">
+          <caret line="76" column="13" selection-start-line="76" selection-start-column="13" selection-end-line="76" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/CommunicatorTest.java">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/LotteryScheduler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="735">
-          <caret line="54" column="45" selection-start-line="54" selection-start-column="45" selection-end-line="54" selection-end-column="45" />
+        <state relative-caret-position="316">
+          <caret line="22" column="40" lean-forward="true" selection-start-line="22" selection-start-column="40" selection-end-line="22" selection-end-column="40" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Communicator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1455">
-          <caret line="97" column="36" selection-start-line="96" selection-start-column="6" selection-end-line="97" selection-end-column="36" />
+        <state relative-caret-position="235">
+          <caret line="19" column="13" selection-start-line="19" selection-start-column="13" selection-end-line="19" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Interrupt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="97" column="19" selection-start-line="97" selection-start-column="19" selection-end-line="97" selection-end-column="19" />
-          <folding>
-            <element signature="e#2773#2774#0" expanded="true" />
-            <element signature="e#2805#2806#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Stats.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="19" selection-start-line="8" selection-start-column="19" selection-end-line="8" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Semaphore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="676">
-          <caret line="88" column="28" selection-start-line="88" selection-start-column="28" selection-end-line="88" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/SynchList.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="70" column="23" selection-start-line="70" selection-start-column="23" selection-end-line="70" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/Makefile">
+    <entry file="file://$PROJECT_DIR$/proj1/nachos/ag/package.html">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/package.html">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/LotteryScheduler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="13" selection-start-line="22" selection-start-column="13" selection-end-line="22" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ThreadQueue.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="46" column="22" selection-start-line="46" selection-start-column="22" selection-end-line="46" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/ThreadedKernel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2415">
-          <caret line="165" column="28" selection-start-line="165" selection-start-column="28" selection-end-line="165" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/KThread.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1035">
-          <caret line="71" column="51" selection-start-line="71" selection-start-column="51" selection-end-line="71" selection-end-column="51" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/Scheduler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1140">
-          <caret line="77" column="32" selection-start-line="77" selection-start-column="32" selection-end-line="77" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/RoundRobinScheduler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="17" column="13" selection-start-line="17" selection-start-column="13" selection-end-line="17" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Packet.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Processor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="19" selection-start-line="25" selection-start-column="19" selection-end-line="25" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Machine.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="37" column="5" selection-start-line="37" selection-start-column="5" selection-end-line="37" selection-end-column="5" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2359#2360#0" expanded="true" />
-            <element signature="e#2382#2383#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/proj1/nachos/machine/Lib.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="29" column="19" selection-start-line="29" selection-start-column="19" selection-end-line="29" selection-end-column="19" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/proj1/nachos/threads/PriorityScheduler.java">
-      <provider selected="true" editor-type-id="text-editor" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="328">
+          <caret line="108" column="7" lean-forward="true" selection-end-line="258" />
+        </state>
+      </provider>
     </entry>
   </component>
   <component name="masterDetails">
