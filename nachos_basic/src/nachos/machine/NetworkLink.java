@@ -68,7 +68,7 @@ import java.net.SocketException;
  * networklink的其余接口与serialconsole的接口等效。内核可以通过调用receive（）来检查数据包，如果没有可用的数据包，receive（）将返回null。
  * 每当数据包到达时，就会产生一个接收中断。内核可以通过调用send（）发送数据包，但在尝试发送另一个数据包之前，它必须等待发送中断。
  */
-public class NetworkLink {
+public class 	NetworkLink {
     /**
      * Allocate a new network link.
      *

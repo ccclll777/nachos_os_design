@@ -97,7 +97,7 @@ public final class Lib {
     public static void assertTrue(boolean expression, String message) {
 	if (!expression)
 	    throw new AssertionFailureError(message);
-    }
+}
 
     /**
      * Asserts that this call is never made. Same as <tt>assertTrue(false)</tt>.

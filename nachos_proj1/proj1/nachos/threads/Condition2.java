@@ -55,7 +55,7 @@ public class Condition2 {
         //关中断
         boolean InterruptStatus = Machine.interrupt().disable();
         //如果当前线程没有持有锁
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+	    Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 
 	//将线程添加到等待队列
         waitQueue.waitForAccess(KThread.currentThread());

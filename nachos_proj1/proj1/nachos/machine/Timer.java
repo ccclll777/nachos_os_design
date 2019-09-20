@@ -21,7 +21,9 @@ import nachos.security.Privilege;
 //–setInterruptHandler（）告诉计时器当它关闭时该做什么
 //•提供抢占权
 
+	//中断之后 时钟会前进一个tick
 	//每当mips模拟器执行一条指令时，时钟前进一个tick。
+	//每当就绪队列为空
 
 	//Nachos提供了一个计时器实例来模拟实时时钟，以固定的间隔生成中断。它是使用上述事件驱动的中断机制实现的。machine.timer（）返回对此计时器的引用。
 public final class Timer {
@@ -58,6 +60,7 @@ public final class Timer {
      */
     //将回调设置为用作计时器中断处理程序。计时器中断处理程序大约每500个时钟周期调用一次。
 	//设置计时器中断处理程序，模拟计时器大约在每个stats.timer ticks滴答声时调用该处理程序。
+	//参数为需要中断的 线程
     public void setInterruptHandler(Runnable handler) {
 	this.handler = handler;
     }

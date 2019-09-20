@@ -29,48 +29,57 @@ public class BoatGrader {
 
     /* ChildRowToMolokai should be called when a child pilots the boat
        from Oahu to Molokai */
+    //child驾驶船 从O到M
     public void ChildRowToMolokai() {
 	System.out.println("**Child rowing to Molokai.");
     }
 
     /* ChildRowToOahu should be called when a child pilots the boat
        from Molokai to Oahu*/
+    //child驾驶船 从M到O
     public void ChildRowToOahu() {
 	System.out.println("**Child rowing to Oahu.");
     }
 
     /* ChildRideToMolokai should be called when a child not piloting
        the boat disembarks on Molokai */
+    //child不驾驶 boat去 M地
     public void ChildRideToMolokai() {
 	System.out.println("**Child arrived on Molokai as a passenger.");
     }
 
     /* ChildRideToOahu should be called when a child not piloting
        the boat disembarks on Oahu */
+
+    //child不驾驶 boat去 O地
     public void ChildRideToOahu() {
 	System.out.println("**Child arrived on Oahu as a passenger.");
     }
 
     /* AdultRowToMolokai should be called when a adult pilots the boat
        from Oahu to Molokai */
+    //adult驾驶 boat去 M地
     public void AdultRowToMolokai() {
 	System.out.println("**Adult rowing to Molokai.");
     }
 
     /* AdultRowToOahu should be called when a adult pilots the boat
        from Molokai to Oahu */
+    //adult驾驶 boat去 O地
     public void AdultRowToOahu() {
 	System.out.println("**Adult rowing to Oahu.");
     }
 
     /* AdultRideToMolokai should be called when an adult not piloting
        the boat disembarks on Molokai */
+    //adult不驾驶 boat去 O地
     public void AdultRideToMolokai() {
 	System.out.println("**Adult arrived on Molokai as a passenger.");
     }
 
     /* AdultRideToOahu should be called when an adult not piloting
        the boat disembarks on Oahu */
+    //
     public void AdultRideToOahu() {
 	System.out.println("**Adult arrived on Oahu as a passenger.");
     }

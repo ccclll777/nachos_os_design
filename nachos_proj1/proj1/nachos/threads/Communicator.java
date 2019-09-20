@@ -96,5 +96,7 @@ public class Communicator {
     public static void selfTest() {
        CommunicatorTest communicatorTest = new CommunicatorTest();
        communicatorTest.commTest(1);
+//        System.out.println("test");
+//        communicatorTest.test();
     }
 }

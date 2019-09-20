@@ -192,6 +192,7 @@ public final class Interrupt {
 
     //测试 当前中断是否结束  测试 系统时钟总时间是否用完？？
 	//为排队事件调用事件处理程序，直到不再发生事件为止。它由tick（）调用。
+	//查看是否需要服务 时间队列头的事件
     private void checkIfDue() {
 	long time = privilege.stats.totalTicks;
 
@@ -203,6 +204,7 @@ public final class Interrupt {
 	if (pending.isEmpty())
 	    return;
 
+	//检查队列 如果队列头的进程时间没到 则 会快进
 	if (((PendingInterrupt) pending.first()).time > time)
 	    return;
 
@@ -276,6 +278,7 @@ public final class Interrupt {
     private Privilege privilege;
 
     private boolean enabled;
+    //时间队列
     private TreeSet<PendingInterrupt> pending;
 
     private static final char dbgInt = 'i';

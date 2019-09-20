@@ -139,7 +139,9 @@ public class ThreadedKernel extends Kernel {
 //	Semaphore.selfTest();
 //	SynchList.selfTest();
 //        Condition2Test.runTest();
-        Communicator.selfTest();
+//        Communicator.selfTest();
+        PriorityScheduler.selfTest();
+//        Boat.selfTest();
 	if (Machine.bank() != null) {
 	    ElevatorBank.selfTest();
 	}
@@ -151,6 +153,7 @@ public class ThreadedKernel extends Kernel {
      */
     //线程内核不允许用户程序
     public void run() {
+
     }
 
     /**

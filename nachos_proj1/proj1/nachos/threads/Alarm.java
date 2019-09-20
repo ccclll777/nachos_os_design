@@ -152,19 +152,30 @@ public class Alarm {
 
     public static void selfTest() {
         AlarmTest.runTest();
-//        Alarm myAlarm = new Alarm();
+
+//        System.out.println( "   System.out.println( Machine.timer().getTime());");
+//       KThread kt = new KThread(new Runnable() {
+//           @Override
+//           public void run() {
+//               int i   = 0 ;
+//               while (i++<40)
+//               {
+//                   System.out.println( Machine.timer().getTime());
+//                   if(i == 20)
+//                   {
+//                       Alarm myAlarm = new Alarm();
+//                       long waittime = 1470;
+//                       System.out.println("call   waitutil("+waittime+")at"+Machine.timer().getTime());
+//                       myAlarm.waitUntil(waittime);
+//                       System.out.println("waker at" +Machine.timer().getTime());
 //
-//        System.out.println("*** Entering Alarm self test");
-//        KThread thread1 = new KThread(new PingAlarmTest(1000,myAlarm));
-//        thread1.fork();
+//                   }
+//               }
+//           }
+//       });
 //
-//        KThread thread2 = new KThread(new PingAlarmTest(500,myAlarm));
-//        thread2.fork();
-//
-//        new PingAlarmTest(2000,myAlarm).run();
-//
-//
-//        System.out.println("*** Exiting Alarm self test");
+//       kt.fork();
+
     }
 
 }

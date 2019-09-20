@@ -562,7 +562,6 @@ public class KThread {
     /** Number of times the KThread constructor was called. */
     //调用kthread构造函数的次数。
     private static int numCreated = 0;
-
     private static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;

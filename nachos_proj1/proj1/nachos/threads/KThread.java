@@ -77,7 +77,8 @@ public class KThread {
 
 	    //当前运行的线程
 	    currentThread = this;
-	    //tcb
+	    //tcb   第一个TCB在machine 的main函数创建好了
+
 	    tcb = TCB.currentTCB();
 
 	    name = "main";
@@ -174,7 +175,7 @@ public class KThread {
      * call to the <tt>fork</tt> method) and the other thread (which executes
      * its target's <tt>run</tt> method).
      */
-    //fork一个子线程    两个线程同时运行  ：  当前线程（执行fork方法的线程） 和另一个线程（执行run方法的线程）
+    //fork一个子线程    两个线程同时运行  当前线程（执行fork方法的线程） 和另一个线程（执行run方法的线程）
     public void fork() {
 	Lib.assertTrue(status == statusNew);
 	Lib.assertTrue(target != null);
@@ -246,7 +247,7 @@ public class KThread {
 	Machine.autoGrader().finishingCurrentThread();
 
 	Lib.assertTrue(toBeDestroyed == null);
-	//当前线程可以销毁
+	//当前线程可以销毁 tcb可以被销毁
 	toBeDestroyed = currentThread;
 
 
@@ -299,6 +300,7 @@ public class KThread {
 	 *
 	 * 中断被禁用，因此当前线程可以原子地将自身添加到就绪队列并切换到下一个线程。返回时，将中断恢复到以前的状态，以防在中断被禁用的情况下调用<tt>yield（）</tt>。
 	 */
+	//表示让出cpu的使用权
 	public static void yield() {
 	Lib.debug(dbgThread, "Yielding thread: " + currentThread.toString());
 	
@@ -307,6 +309,7 @@ public class KThread {
 	//关中断
 	boolean intStatus = Machine.interrupt().disable();
 
+	//当前线程
 	currentThread.ready();
 
 	//运行下一个线程
@@ -508,9 +511,11 @@ public class KThread {
 	 * 以前运行的线程的状态必须已经从running更改为blocked或ready（取决于线程是在sleeping还是yielding）。
 	 */
 
+	//cpu执行下一个线程  进行 上下文的切换
 	private void run() {
 	Lib.assertTrue(Machine.interrupt().disabled());
 
+	//移交非nachos线程    在非抢占式jvm中使用，使非nachos线程有机会运行。
 	Machine.yield();
 
 	currentThread.saveState();
@@ -544,6 +549,7 @@ public class KThread {
 	//线程状态
 	status = statusRunning;
 
+	//销毁准备销毁的线程
 	if (toBeDestroyed != null) {
 	    toBeDestroyed.tcb.destroy();
 	    toBeDestroyed.tcb = null;
@@ -576,6 +582,35 @@ public class KThread {
 
 	private int which;
     }
+	/**
+	 * Sets the priority of a thread()
+	 */
+	public void setPriority(int priority) {
+		/* Disable interrupts */
+		boolean intStatus = Machine.interrupt().disable();
+
+		/* Talk to the scheduler */
+		ThreadedKernel.scheduler.setPriority(this, priority);
+
+		/* Restore interrupts */
+		Machine.interrupt().restore(intStatus);
+	}
+
+	/**
+	 * Gets the priority of a thread()
+	 */
+	public int getPriority() {
+		/* Disable interrupts */
+		boolean intStatus = Machine.interrupt().disable();
+
+		/* Talk to the scheduler */
+		int priority = ThreadedKernel.scheduler.getPriority(this);
+
+		/* Restore interrupts */
+		Machine.interrupt().restore(intStatus);
+
+		return priority;
+	}
 
     /**
      * Tests whether this module is working.
@@ -607,7 +642,8 @@ public class KThread {
 				t2.join();
 				System.out.println("t2 joined");
 			}
-		});
+		});//
+
 		System.out.println("t1 is going to fork");
 		t1.fork();
 		System.out.println("t1 forked");
@@ -670,6 +706,7 @@ public class KThread {
     private static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
+    //空闲线程   猜测 ： 当cpu没有线程 运行是 会运行这个线程  然后执行yield方法
     private static KThread idleThread = null;
 
 	/**

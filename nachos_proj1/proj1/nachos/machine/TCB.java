@@ -22,7 +22,7 @@ import java.util.Vector;
  * It's against the rules, <i>and</i> it can easily deadlock nachos.
  */
 
-//TCB模拟了创建、上下文切换和 销毁nachos线程  每个TCB控制一个底层的jvm线程 对象
+//TCB模拟了创建、上下文切换和 销毁nachos线程  每个TCB控制一个底层的jvm线程对象
 //不要使用任何<tt>java.lang.Thread</tt>中的方法  因为它们与tcb api不兼容  大多数线程方法都会崩溃  nachos将没有作用
 //不要使用<i>synchronized</i> keyword <b>anywhere</b> in your code.
 public final class TCB {
@@ -71,7 +71,8 @@ public final class TCB {
 	 * already been invoked.
 	 */
 
-	//确定此TCB没有被启动 如果结果为false  那么destroy()方法没有将javaThread设置为null  所以我们使用javaThread作为一个可靠的标志来表示start（）是否已经被调用
+	//确定此TCB没有被启动 如果结果为false  那么destroy()方法没有将javaThread设置为null
+		//所以我们使用javaThread作为一个可靠的标志来表示start（）是否已经被调用
 	Lib.assertTrue(javaThread == null && !done);
 
 	/* Make sure there aren't too many running TCBs already. This
@@ -95,7 +96,8 @@ public final class TCB {
 	 * runningThreads, and we save the target closure.
 	 */
 
-	//在这一点上，所有的检查都完成了，所以我们继续并启动tcb。不管这是否是第一个tcb，它都会被添加到runningthreads中，然后我们保存目标闭包。
+	//在这一点上，所有的检查都完成了，所以我们继续并启动tcb。不管这是否是第一个tcb，
+	// 它都会被添加到runningthreads中，然后我们保存目标闭包。
 	runningThreads.add(this);
 
 	this.target = target;
@@ -124,7 +126,7 @@ public final class TCB {
 		//并等待它从threadroot()唤醒
 		//一旦新的tcb唤醒我们，就可以安全地将上下文切换到新的tcb。
 	    currentTCB.running = false;
-	    
+	    //此TCB对应的java 线程start
 	    this.javaThread.start();
 	    //等待中断
 	    currentTCB.waitForInterrupt();
@@ -290,6 +292,7 @@ public final class TCB {
 
 	    //移除此线程
 	    runningThreads.removeElement(this);
+	    //如果没有TCB 则停机
 	    if (runningThreads.isEmpty())
 		privilege.exit(0);
 	}
@@ -352,7 +355,10 @@ public final class TCB {
 	 */
     private synchronized void waitForInterrupt() {
 	while (!running) {
-	    try { wait(); }
+	    try {
+	    	//导致线程进入等待状态，直到它被其他线程通过notify()或者notifyAll唤醒
+	    	wait();
+	    }
 	    catch (InterruptedException e) { }
 	}
     }
@@ -367,10 +373,12 @@ public final class TCB {
 	//用于ping-pong process和销毁tcb的过程，以及在上下文中切换到此tcb。
     private synchronized void interrupt() {
 	running = true;
+	//随机选择一个在该对象上调用wait方法的线程，解除其阻塞状态。
+		// 该方法只能在同步方法或同步块内部调用。如果当前线程不是锁的持有者，该方法抛出一个
 	notify();
     }
 
-    //协作线程？
+    //协作线程？ 指定此TCB的KThread？
     private void associateThread(KThread thread) {
 	// make sure AutoGrader.runningThread() gets called only once per
 	// context switch

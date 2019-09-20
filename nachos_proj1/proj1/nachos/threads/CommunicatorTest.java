@@ -51,17 +51,22 @@ public class CommunicatorTest {
     public   class Speaker implements Runnable{
         @Override
         public void run() {
-           communicatorc.speak(message++);
-            System.out.println("xxxx"+message);
-            print("  " +KThread.currentThread().getName() +"发出消息" +(message-1));
+           communicatorc.speak(i);
+            System.out.println("xxxx"+i);
+            print("  " +KThread.currentThread().getName() +"发出消息" +i);
         }
+        Speaker(int i)
+        {
+            this.i = i;
+        }
+        int i;
     }
     public  void  createSpeaker (int numOfSpeaker)
     {
         int j;
         for (j = 1 ; j<=numOfSpeaker ; j++)
         {
-            KThread speakerKthread  = new KThread(new Speaker());
+            KThread speakerKthread  = new KThread(new Speaker(j));
             speakerKthread.setName("speaker"+j);
             speakerKthread.fork();
         }
@@ -81,4 +86,50 @@ public class CommunicatorTest {
        System.out.println(message);
    }
 
+
+    private  class  speak implements  Runnable{
+        @Override
+        public void run() {
+            communicator.speak(word);
+        }
+        speak(Communicator communicator,int word)
+        {
+            this.communicator = communicator;
+            this.word = word;
+
+        }
+        Communicator communicator;
+        int word;
+    }
+    private  class  listen implements  Runnable{
+        @Override
+        public void run() {
+           int word ;
+           word = communicator.listen();
+           System.out.println(KThread.currentThread().getName() +"listen"+word);
+        }
+        listen(Communicator communicator)
+        {
+            this.communicator = communicator;
+
+        }
+        Communicator communicator;
+    }
+    public  void test()
+    {
+        System.out.println("test333");
+        Communicator communicator = new Communicator();
+        KThread kThread1 = new KThread(new speak(communicator,1111)).setName("speak1");
+        KThread kThread2 = new KThread(new speak(communicator,2222)).setName("speak2");
+        KThread kThread3 = new KThread(new listen(communicator)).setName("listen1");
+        KThread kThread4 = new KThread(new listen(communicator)).setName("listen2");
+
+        kThread1.fork();
+        kThread2.fork();
+        kThread3.fork();
+        kThread4.fork();
+
+
+
+    }
 }

@@ -36,6 +36,7 @@ public final class Machine {
 	System.out.print("nachos 5.0j initializing...");
 	
 	Lib.assertTrue(Machine.args == null);
+
 	Machine.args = args;
 
 	processArgs();
@@ -73,6 +74,7 @@ public final class Machine {
 	///提供 使用  <tt>Machine</tt>中私有方法 的权限
 	privilege.machine = new MachinePrivilege();
 
+
 	//将TCB中的某个权限给privilege
 	TCB.givePrivilege(privilege);
 	//初始化privilege的状态为
@@ -83,6 +85,7 @@ public final class Machine {
 	createDevices();
 	checkUserClasses();
 
+	//new
 	autoGrader = (AutoGrader) Lib.constructObject(autoGraderClassName);
 
 	//启动程序
@@ -153,8 +156,8 @@ public final class Machine {
 	//
     private static void processArgs() {
 	for (int i=0; i<args.length; ) {
-	    String arg = args[i++];
 
+	    String arg = args[i++];
 	    //如果第一位是-
 	    if (arg.length() > 0 && arg.charAt(0) == '-') {
 		if (arg.equals("-d")) {
@@ -445,11 +448,8 @@ public final class Machine {
      * <tt>nachos.network.NetProcess</tt>.
      *
      * @return	the name of the process class that the kernel should use.
+	 *
      *
-     * @see	nachos.userprog.UserKernel#run
-     * @see	nachos.userprog.UserProcess
-     * @see	nachos.vm.VMProcess
-     * @see	nachos.network.NetProcess
      */
     //返回内核应该使用的进程类的名称。在multi-programming项目中，返回<tt>nachos.userprog.userprocess</tt>。
 	// 在vm项目中，返回<tt>nachos.vm.vmprocess</tt>。在网络项目中，返回
