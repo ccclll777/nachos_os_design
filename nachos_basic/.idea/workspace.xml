@@ -40,7 +40,7 @@
       <file leaf-file-name="TCB.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nachos/machine/TCB.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
+            <state relative-caret-position="360">
               <caret line="28" column="19" selection-start-line="28" selection-start-column="19" selection-end-line="28" selection-end-column="19" />
             </state>
           </provider>
@@ -59,8 +59,8 @@
       <file leaf-file-name="Machine.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nachos/machine/Machine.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6795">
-              <caret line="487" column="10" lean-forward="true" selection-start-line="487" selection-start-column="10" selection-end-line="487" selection-end-column="10" />
+            <state relative-caret-position="7200">
+              <caret line="487" column="10" selection-start-line="487" selection-start-column="10" selection-end-line="487" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -68,8 +68,18 @@
       <file leaf-file-name="NetworkLink.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/nachos/machine/NetworkLink.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3291">
+            <state relative-caret-position="15">
               <caret line="70" column="16" selection-start-line="70" selection-start-column="16" selection-end-line="70" selection-end-column="16" />
+              <folding>
+                <element signature="e#3998#4065#0" expanded="true" />
+                <element signature="e#4064#4065#0" expanded="true" />
+                <element signature="e#4085#4149#0" expanded="true" />
+                <element signature="e#4148#4149#0" expanded="true" />
+                <element signature="e#4220#4282#0" expanded="true" />
+                <element signature="e#4281#4282#0" expanded="true" />
+                <element signature="e#7428#7490#0" expanded="true" />
+                <element signature="e#7489#7490#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -105,7 +115,7 @@
   <component name="PhpServers">
     <servers />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="y" value="23" />
     <option name="width" value="1440" />
     <option name="height" value="828" />
@@ -115,8 +125,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="AndroidView" />
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -129,38 +140,10 @@
               <item name="nachos_basic" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="nachos_basic" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_basic" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="nachos" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="nachos_basic" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_basic" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="nachos" type="462c0819:PsiDirectoryNode" />
-              <item name="ag" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="nachos_basic" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_basic" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="nachos" type="462c0819:PsiDirectoryNode" />
-              <item name="machine" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="nachos_basic" type="b2602c69:ProjectViewProjectNode" />
-              <item name="nachos_basic" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="nachos" type="462c0819:PsiDirectoryNode" />
-              <item name="threads" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -231,15 +214,15 @@
       <workItem from="1568622594675" duration="2104000" />
       <workItem from="1568679629328" duration="3684000" />
       <workItem from="1568710824164" duration="1268000" />
+      <workItem from="1568976018669" duration="728000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7056000" />
+    <option name="totallyTimeSpent" value="7784000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="24" width="1440" height="828" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="0" width="1440" height="900" extended-state="0" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -255,7 +238,7 @@
       <window_info anchor="bottom" id="Terminal" order="7" weight="0.32968536" />
       <window_info id="Capture Tool" order="2" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25679544" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26037195" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -279,6 +262,23 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/nachos/machine/NetworkLink.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="945">
+          <caret line="70" column="16" selection-start-line="70" selection-start-column="16" selection-end-line="70" selection-end-column="16" />
+          <folding>
+            <element signature="e#3998#4065#0" expanded="true" />
+            <element signature="e#4064#4065#0" expanded="true" />
+            <element signature="e#4085#4149#0" expanded="true" />
+            <element signature="e#4148#4149#0" expanded="true" />
+            <element signature="e#4220#4282#0" expanded="true" />
+            <element signature="e#4281#4282#0" expanded="true" />
+            <element signature="e#7428#7490#0" expanded="true" />
+            <element signature="e#7489#7490#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/nachos/threads/KThread.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8325">
@@ -305,9 +305,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3765">
           <caret line="251" column="23" selection-start-line="251" selection-start-column="23" selection-end-line="251" selection-end-column="23" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -518,9 +515,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3150">
           <caret line="251" column="23" selection-start-line="251" selection-start-column="23" selection-end-line="251" selection-end-column="23" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -548,7 +542,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nachos/machine/TCB.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
+        <state relative-caret-position="360">
           <caret line="28" column="19" selection-start-line="28" selection-start-column="19" selection-end-line="28" selection-end-column="19" />
         </state>
       </provider>
@@ -561,15 +555,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nachos/machine/Machine.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6795">
-          <caret line="487" column="10" lean-forward="true" selection-start-line="487" selection-start-column="10" selection-end-line="487" selection-end-column="10" />
+        <state relative-caret-position="7200">
+          <caret line="487" column="10" selection-start-line="487" selection-start-column="10" selection-end-line="487" selection-end-column="10" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nachos/machine/NetworkLink.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3291">
+        <state relative-caret-position="15">
           <caret line="70" column="16" selection-start-line="70" selection-start-column="16" selection-end-line="70" selection-end-column="16" />
+          <folding>
+            <element signature="e#3998#4065#0" expanded="true" />
+            <element signature="e#4064#4065#0" expanded="true" />
+            <element signature="e#4085#4149#0" expanded="true" />
+            <element signature="e#4148#4149#0" expanded="true" />
+            <element signature="e#4220#4282#0" expanded="true" />
+            <element signature="e#4281#4282#0" expanded="true" />
+            <element signature="e#7428#7490#0" expanded="true" />
+            <element signature="e#7489#7490#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
