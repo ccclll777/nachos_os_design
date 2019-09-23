@@ -43,6 +43,18 @@ import nachos.machine.TCB;
  * 。这提供了一种错觉，即上下文切换当前线程的保存状态并加载新线程的保存状态。
  * 然而，这个细节对于调试器（它将显示多个Java线程）是非常重要的，因为行为等同于实际处理器上的上下文切换。
  */
+
+/***
+ * 1)KThread构造函数创建线程时创建TCB，若当前无线程时，创建第一个线程直接使用main线程执行并将tcb指向currentTCB。  
+ *
+ *     2)当线程调用fork()方法，即在增加一个线程时调用tcb.start()  
+ *
+ * 3)当线程调用run()方法，使CPU运行当前线程发生上下文切换时，调用
+ *
+ * tcb.contextSwitch切换到新的线程 
+ *
+ * 4)恢复运行环境时调用销毁被标记删除状态的tcb
+ */
 public class KThread {
     /**
      * Get the current thread.
@@ -175,7 +187,8 @@ public class KThread {
      * call to the <tt>fork</tt> method) and the other thread (which executes
      * its target's <tt>run</tt> method).
      */
-    //fork一个子线程    两个线程同时运行  当前线程（执行fork方法的线程） 和另一个线程（执行run方法的线程）
+    //fork就是将创建的线程加入到ready队列当中
+	//导致线程开始执行，结果就是两个线程正在执行，一个是当前线程，一个是被执行的线程。
     public void fork() {
 	Lib.assertTrue(status == statusNew);
 	Lib.assertTrue(target != null);
@@ -258,7 +271,8 @@ public class KThread {
 		 * 当A线程 调用B。join时  B执行完毕之后 会执行到这里 将当前线程的信号量+1  可以正常运行 A线程
 		 */
 //		currentThread.joinSem.V();
-	
+
+		//会执行sleep中 调用下一个线程的风发 nextthread
 	sleep();
     }
 	/**
@@ -512,12 +526,17 @@ public class KThread {
 	 */
 
 	//cpu执行下一个线程  进行 上下文的切换
+	//将这个线程放在CPU上执行，保存进程的当前状态并调用新线程，载入新线程的状态
+	// 。新线程就成了当前线程，如果新线程与旧线程是相同的，这个方法必须被调用，
+	// 之前运行的线程必须从运行状态转到阻塞或者就绪等待状态（取决语之前运行的线程在sleep状态还是yield状态）
 	private void run() {
 	Lib.assertTrue(Machine.interrupt().disabled());
 
 	//移交非nachos线程    在非抢占式jvm中使用，使非nachos线程有机会运行。
+		//当先线程让出cpu
 	Machine.yield();
 
+	//保存当前正在运行线程的状态信息
 	currentThread.saveState();
 
 	Lib.debug(dbgThread, "Switching from: " + currentThread.toString()
@@ -525,8 +544,10 @@ public class KThread {
 
 	currentThread = this;
 
+	//进行上下文切换
 	tcb.contextSwitch();
 
+	//恢复线程的状态
 	currentThread.restoreState();
     }
 

@@ -21,7 +21,8 @@ import java.util.PropertyPermission;
  * Protects the environment from malicious Nachos code.
  */
 //保护环境免受恶意nachos代码的攻击
-	//安全管理器是一个允许应用程序实现安全策略的类。它允许应用程序在执行一个可能不安全或敏感的操作前确定该操作是什么，以及是否是在允许执行该操作的安全上下文中执行它。应用程序可以允许或不允许该操作
+	//安全管理器是一个允许应用程序实现安全策略的类。它允许应用程序在执行一个可能不安全或敏感的操作前确定该操作是什么，
+// 以及是否是在允许执行该操作的安全上下文中执行它。应用程序可以允许或不允许该操作
 public class NachosSecurityManager extends SecurityManager {
     /**
      * Allocate a new Nachos security manager.
@@ -90,7 +91,7 @@ public class NachosSecurityManager extends SecurityManager {
 	}
     }
 
-    //确定权限？
+    //确定权限  给java线程 权限？？
     private void enablePrivilege() {
 	if (privilegeCount == 0) {
 	    Lib.assertTrue(privileged == null);

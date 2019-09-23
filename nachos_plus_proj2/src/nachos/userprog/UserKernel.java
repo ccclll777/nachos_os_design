@@ -4,11 +4,18 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
+import java.util.LinkedList;
+
 /**
  * A kernel that can support multiple user processes.
  */
 //多道程序设计的内核。
 public class UserKernel extends ThreadedKernel {
+	//空页
+	private static LinkedList<Integer> freePages = new LinkedList<Integer>();
+
+	//保证访问内存互斥的锁
+	private  static  Lock  memoryLock =  new Lock();
     /**
      * Allocate a new user kernel.
      */
@@ -20,15 +27,46 @@ public class UserKernel extends ThreadedKernel {
      * Initialize this kernel. Creates a synchronized console and sets the
      * processor's exception handler.
      */
+    //初始化这个内核。创建同步控制台并设置处理器的异常处理程序。
     public void initialize(String[] args) {
+    	//获取配置文件信息   创建线程 以及时钟
 	super.initialize(args);
 
+	//多个用户程序之间共享控制台
 	console = new SynchConsole(Machine.console());
-	
+
+		int numPhysPages = Machine.processor().getNumPhysPages();
+		//初始化物理页  物理内存
+		for (int i = 0; i < numPhysPages; ++i) {
+			freePages.add(i);
+		}
+
 	Machine.processor().setExceptionHandler(new Runnable() {
 		public void run() { exceptionHandler(); }
 	    });
     }
+
+    //给进程获取物理页
+	public static int getFreePage() {
+		int pageNumber = -1;
+//		boolean interruptStatus = Machine.interrupt().disable();
+		memoryLock.acquire();
+		if (freePages.isEmpty() == false) {
+			pageNumber = freePages.removeFirst();
+		}
+//		Machine.interrupt().restore(interruptStatus);
+		memoryLock.release();
+		return pageNumber;
+	}
+
+	//释放物理内存
+	public static void addFreePage(int pageNumber) {
+//		boolean interruptStatus = Machine.interrupt().disable();
+		memoryLock.acquire();
+		freePages.addFirst(pageNumber);
+		memoryLock.release();
+//		Machine.interrupt().restore(interruptStatus);
+	}
 
     /**
      * Test the console device.
@@ -55,6 +93,7 @@ public class UserKernel extends ThreadedKernel {
      *
      * @return	the current process, or <tt>null</tt> if no process is current.
      */
+    //返回当前进程
     public static UserProcess currentProcess() {
 	if (!(KThread.currentThread() instanceof UThread))
 	    return null;
@@ -75,10 +114,15 @@ public class UserKernel extends ThreadedKernel {
      * error), the processor's BadVAddr register identifies the virtual address
      * that caused the exception.
      */
+    //异常处理程序。每当用户指令导致处理器异常时，处理器都会调用此处理程序。
+
+	//调用异常处理程序时，将启用中断，并且处理器的原因寄存器包含一个整数，用于标识异常的原因（请参阅<tt>processor</tt>类中的<tt>exceptionzzz</tt>常量）。
+	// 如果异常涉及错误的虚拟地址（例如页错误、TLB未命中、只读、总线错误或地址错误），处理器的badvaddr寄存器将标识导致异常的虚拟地址。
     public void exceptionHandler() {
 	Lib.assertTrue(KThread.currentThread() instanceof UThread);
 
 	UserProcess process = ((UThread) KThread.currentThread()).process;
+	//返回异常原因寄存器中的内容
 	int cause = Machine.processor().readRegister(Processor.regCause);
 	process.handleException(cause);
     }
@@ -109,6 +153,7 @@ public class UserKernel extends ThreadedKernel {
     }
 
     /** Globally accessible reference to the synchronized console. */
+    //对同步控制台的全局可访问引用
     public static SynchConsole console;
 
     // dummy variables to make javac smarter

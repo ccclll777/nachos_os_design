@@ -25,11 +25,12 @@ public class StubFileSystem implements FileSystem {
      *				machine.
      * @param	directory	the root directory of the stub file system.
      */
+    //存根文件系统的根目录。
     public StubFileSystem(Privilege privilege, File directory) {
 	this.privilege = privilege;
 	this.directory = directory;
     }
-    
+    //打开文件  如果不存在 切第二个参数为true  则会创建
     public OpenFile open(String name, boolean truncate) {
 	if (!checkName(name))
 	    return null;
@@ -43,18 +44,21 @@ public class StubFileSystem implements FileSystem {
 	    return null;
 	}
     }
-    
+
+    //移除文件  检查文件合法性后进行操作
     public boolean remove(String name) {
 	if (!checkName(name))
 	    return false;
 
 	delay();
-
+		//创建一个线程 完成文件的移除？？
 	FileRemover fr = new FileRemover(new File(directory, name));
+	//可以使用特权指令 执行此操作
 	privilege.doPrivileged(fr);
 	return fr.successful;
     }
 
+    //文件移除 线程  执行文件的移除操作
     private class FileRemover implements Runnable {
 	public FileRemover(File f) {
 	    this.f = f;
@@ -68,6 +72,7 @@ public class StubFileSystem implements FileSystem {
 	private File f;
     }
 
+    //wait 1000个tick？？ 延迟操作 可能是为了协调系统进程的运行？？
     private void delay() {
 	long time = Machine.timer().getTime();
 	int amount = 1000;
@@ -75,6 +80,7 @@ public class StubFileSystem implements FileSystem {
 	Lib.assertTrue(Machine.timer().getTime() >= time+amount);
     }
 
+    //打开文件的对象  在内部建立一个file对象  然后通过getRandomAccess打开文件
     private class StubOpenFile extends OpenFileWithPosition {
 	StubOpenFile(final String name, final boolean truncate)
 	    throws IOException {
@@ -96,11 +102,13 @@ public class StubFileSystem implements FileSystem {
 	    openCount++;
 	}
 
+	//在可以访问指定文件的情况下（文件不存在 可以创建 或文件已经存在的情况） 然后调用java的RandomAccessFile函数获得文件流
 	private void getRandomAccessFile(File f, boolean truncate) {
 	    try {
 		if (!truncate && !f.exists())
 		    return;
 
+		//可以访问文件的任意地方同时支持文件的读和写，并且它支持随机访问
 		file = new RandomAccessFile(f, "rw");
 
 		if (truncate)
@@ -117,6 +125,7 @@ public class StubFileSystem implements FileSystem {
 	    try {
 		delay();
 
+		//通过java的RandomAccess进行寻找
 		file.seek(pos);
 		return Math.max(0, file.read(buf, offset, length));
 	    }
@@ -131,7 +140,8 @@ public class StubFileSystem implements FileSystem {
 	    
 	    try {
 		delay();
-		
+
+			//通过java的RandomAccess进行寻找，然后读写操作
 		file.seek(pos);
 		file.write(buf, offset, length);
 		return length;
@@ -163,6 +173,7 @@ public class StubFileSystem implements FileSystem {
 	    }
 	}
 
+	//可以访问文件的任意地方同时支持文件的读和写，并且它支持随机访问
 	private RandomAccessFile file = null;
 	private boolean open = false;
     }
@@ -173,6 +184,7 @@ public class StubFileSystem implements FileSystem {
     private Privilege privilege;
     private File directory;
 
+    //检查文件名的合法性
     private static boolean checkName(String name) {
 	char[] chars = name.toCharArray();
 

@@ -27,6 +27,7 @@ class AssertionFailureError extends Error {
  * Provides miscellaneous library routines.
  */
 
+//提供一些公用的方法
 public final class Lib {
     /**
      * Prevent instantiation.

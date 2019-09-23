@@ -12,6 +12,7 @@ public class Coff {
     /**
      * Allocate a new Coff object.
      */
+
     protected Coff() {
 	file = null;
 	entryPoint = 0;
@@ -38,13 +39,22 @@ public class Coff {
      * @param	file	the file containing the executable.
      * @exception EOFException    if the executable is corrupt.
      */
+    //在指定的文件中加载COFF可执行文件
+	//
     public Coff(OpenFile file) throws EOFException {
 	this.file = file;
-	
+
+	//加载coff文件
+		//如果构造函数成功返回，则该文件将成为此加载程序的属性，并且不应再被访问。
+		//自动加载器希望使用此加载器类。不要通过任何其他机构加载截面。<li>此加载程序将通过断言read（）
+		// 操作需要非零的模拟时间才能完成，来验证文件是否由文件系统支持。不要提供由模拟缓存支持的文件（
+		// 此限制的主要目的是防止在处理页面错误时立即加载节）。
 	Coff coff = Machine.autoGrader().createLoader(file);
 
 	if (coff != null) {
+		//第一条指令的虚拟地址
 	    this.entryPoint = coff.entryPoint;
+		//此COFF可执行文件中内容
 	    this.sections = coff.sections;
 	}
 	else {
@@ -98,6 +108,7 @@ public class Coff {
      *
      * @return	the number of sections in the executable.
      */
+    //返回可执行文件中的大小
     public int getNumSections() {
 	return sections.length;
     }
@@ -110,6 +121,8 @@ public class Coff {
      * @param	sectionNumber	the section to select.
      * @return	an object that can be used to access the specified section.
      */
+    //返回可用于访问指定区域的对象。有效的节编号包括<tt>0</tt>到<tt>getNumSections（）-1</tt>。
+	//返回可执行文件的 某个字段
     public CoffSection getSection(int sectionNumber) {
 	Lib.assertTrue(sectionNumber >= 0 && sectionNumber < sections.length);
 
@@ -122,6 +135,7 @@ public class Coff {
      *
      * @return	the program entry point.
      */
+    //返回程序入口点。这是在运行程序之前PC寄存器应该初始化到的值。
     public int getEntryPoint() {
 	Lib.assertTrue(file != null);
 	
@@ -132,6 +146,7 @@ public class Coff {
      * Close the executable file and release any resources allocated by this
      * loader.
      */
+    //关闭可执行文件并释放此加载程序分配的所有资源。
     public void close() {
 	file.close();
 
@@ -141,8 +156,10 @@ public class Coff {
     private OpenFile file;
 
     /** The virtual address of the first instruction of the program. */
+    //程序第一条指令的虚拟地址
     protected int entryPoint;
     /** The sections in this COFF executable. */
+    //此COFF可执行文件中内容
     protected CoffSection sections[];
 
     private static final int headerLength = 20;

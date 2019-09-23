@@ -182,6 +182,7 @@ public final class Processor {
      *
      * @return	the current page table.
      */
+    //获取当前页表
     public TranslationEntry[] getPageTable() {
 	Lib.assertTrue(!usingTLB);
 
@@ -195,6 +196,8 @@ public final class Processor {
      *
      * @param	pageTable	the page table to use.
      */
+    //设置页表指针。所有进一步的地址转换都将使用指定的页表。当前地址空间的大小将由页表数组的长度决定。
+	//设置当前正在使用的页表
     public void setPageTable(TranslationEntry[] pageTable) {
 	Lib.assertTrue(!usingTLB);
 
@@ -206,6 +209,8 @@ public final class Processor {
      *
      * @return	the number of entries in this processor's TLB.
      */
+
+    //返回此处理器的TLB中的条目数。
     public int getTLBSize() {
 	Lib.assertTrue(usingTLB);
 
@@ -218,6 +223,7 @@ public final class Processor {
      * @param	number	the index into the TLB.
      * @return	the contents of the specified TLB entry.
      */
+    //返回指定的TLB项。 参数为TLB的索引
     public TranslationEntry readTLBEntry(int number) {
 	Lib.assertTrue(usingTLB);
 	Lib.assertTrue(number >= 0 && number < tlbSize);
@@ -235,6 +241,8 @@ public final class Processor {
      * @param	number	the index into the TLB.
      * @param	entry	the new contents of the TLB entry.
      */
+    //填写指定的TLB条目。
+	//TLB是完全关联的，因此TLB中条目的位置不会影响任何内容。
     public void writeTLBEntry(int number, TranslationEntry entry) {
 	Lib.assertTrue(usingTLB);
 	Lib.assertTrue(number >= 0 && number < tlbSize);
@@ -248,6 +256,7 @@ public final class Processor {
      *
      * @return	the number of pages of physical memory.
      */
+    //返回连接到此模拟处理器的物理内存的页数。
     public int getNumPhysPages() {
 	return numPhysPages;
     }
@@ -258,6 +267,7 @@ public final class Processor {
      *
      * @return	the main memory array.
      */
+    //返回对物理内存数组的引用。这个数组的大小是<tt>pagesize*getNumPhysPages（）</tt>。
     public byte[] getMemory() {
 	return mainMemory;
     }
@@ -272,6 +282,7 @@ public final class Processor {
      *			<tt>pageSize - 1</tt>.
      * @return	a 32-bit address consisting of the specified page and offset.
      */
+    //将页码和偏移量连接到地址中。
     public static int makeAddress(int page, int offset) {
 	Lib.assertTrue(page >= 0 && page < maxPages);
 	Lib.assertTrue(offset >= 0 && offset < pageSize);
@@ -285,6 +296,7 @@ public final class Processor {
      * @param	address	the 32-bit address.
      * @return	the page number component of the address.
      */
+    //从32位地址中提取页码组件。
     public static int pageFromAddress(int address) {
 	return (int) (((long) address & 0xFFFFFFFFL) / pageSize);
     }
@@ -295,6 +307,7 @@ public final class Processor {
      * @param	address	the 32-bit address.
      * @return	the offset component of the address.
      */
+    //从地址中提取偏移分量。
     public static int offsetFromAddress(int address) {
 	return (int) (((long) address & 0xFFFFFFFFL) % pageSize);
     }
@@ -316,6 +329,8 @@ public final class Processor {
      * @return		the physical address.
      * @exception	MipsException	if a translation error occurred.
      */
+    //使用页表或tlb将虚拟地址转换为物理地址。
+	// 检查对齐情况，确保虚拟页有效，确保没有写入只读页，确保生成的物理页有效，然后返回生成的物理地址。
     private int translate(int vaddr, int size, boolean writing)
 	throws MipsException {
 	if (Lib.test(dbgProcessor))
@@ -395,6 +410,7 @@ public final class Processor {
      * @return		the value read.
      * @exception	MipsException	if a translation error occurred.
      */
+    //读取<i>vaddr</i>处的虚拟内存大小（1、2或4）字节，并返回结果。
     private int readMem(int vaddr, int size) throws MipsException {
 	if (Lib.test(dbgProcessor))
 	    System.out.println("\treadMem vaddr=0x" + Lib.toHexString(vaddr)
@@ -421,6 +437,7 @@ public final class Processor {
      * @param	value	the value to store.
      * @exception	MipsException	if a translation error occurred.
      */
+    //从<i>vaddr</i>开始，将<i>value</i>写入</i>size</i>（1、2或4）字节的虚拟内存。
     private void writeMem(int vaddr, int size, int value)
 	throws MipsException {
 	if (Lib.test(dbgProcessor))
@@ -437,14 +454,15 @@ public final class Processor {
     /**
      * Complete the in progress delayed load and scheduled a new one.
      *
-     * @param	nextLoadTarget	the target register of the new load.
-     * @param	nextLoadValue	the value to be loaded into the new target.
+     * @param	nextLoadTarget	the target register of the new load.  新加载的目标寄存器。
+     * @param	nextLoadValue	the value to be loaded into the new target.  要加载到新目标中的值
      * @param	nextLoadMask	the mask specifying which bits in the new
      *				target are to be overwritten. If a bit in
      *				<tt>nextLoadMask</tt> is 0, then the
      *				corresponding bit of register
      *				<tt>nextLoadTarget</tt> will not be written.
      */
+    //完成正在进行的延迟加载并计划新的加载。
     private void delayedLoad(int nextLoadTarget, int nextLoadValue,
 			     int nextLoadMask) {
 	// complete previous delayed load, if not modifying r0
@@ -472,6 +490,11 @@ public final class Processor {
      * Use after handling a syscall exception so that the processor will move
      * on to the next instruction.
      */
+
+    //将电脑转到下一个指令。
+	//将nextpc寄存器的内容转移到pc寄存器中，然后将4添加到nextpc寄存器的值中。
+	// 与<tt>advancepc（readregister（regnextpc）+4）</tt>相同。
+	//在处理系统调用异常后使用，以便处理器继续执行下一条指令。
     public void advancePC() {
 	advancePC(registers[regNextPC]+4);
     }
@@ -505,6 +528,7 @@ public final class Processor {
     public static final int exceptionIllegalInstruction = 7;
 
     /** The names of the CPU exceptions. */
+    //CPU异常的名称
     public static final String exceptionNames[] = {
 	"syscall      ",
 	"page fault   ",
@@ -542,6 +566,7 @@ public final class Processor {
     //下一个程序计数器寄存器的索引
     public static final int regNextPC = 35;
     /** Index of the exception cause register. */
+    //异常原因寄存器的索引
     public static final int regCause = 36;
     /** Index of the exception bad virtual address register. */
     public static final int regBadVAddr = 37;

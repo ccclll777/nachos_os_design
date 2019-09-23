@@ -52,31 +52,37 @@ public final class TranslationEntry {
     }
 
     /** The virtual page number. */
+    //虚拟页号
     public int vpn;
     
     /** The physical page number. */
+    //物理页号
     public int ppn;
 
     /**
      * If this flag is <tt>false</tt>, this translation entry is ignored.
      */
+    //如果为false 此翻译条目将被忽略。
     public boolean valid;
     
     /**
      * If this flag is <tt>true</tt>, the user pprogram is not allowed to
      * modify the contents of this virtual page.
      */
+    //如果此标志为<tt>true</tt>，则不允许用户程序修改此虚拟页的内容。
     public boolean readOnly;
     
     /**
      * This flag is set to <tt>true</tt> every time the page is read or written
      * by a user program.
      */
+    //每次用户程序读取或写入页面时，此标志都设置为<tt>true</tt>。
     public boolean used;
     
     /**
      * This flag is set to <tt>true</tt> every time the page is written by a
      * user program.
      */
+    //每次用户程序修改页面时，此标志都设置为<tt>true</tt>。
     public boolean dirty;
 }

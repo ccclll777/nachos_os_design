@@ -34,7 +34,8 @@ public final class Machine {
      */
     public static void main(final String[] args) {
 	System.out.print("nachos 5.0j initializing...");
-	
+
+	//机器第一次启动
 	Lib.assertTrue(Machine.args == null);
 
 	Machine.args = args;
@@ -65,7 +66,7 @@ public final class Machine {
 	    testDirectory = new File(baseDirectory.getParentFile(), "test");
 	}
 
-	//安全配置文件
+	//安全配置文件  读取配置文件信息？
 	securityManager = new NachosSecurityManager(testDirectory);
 
 	//获取某个特权类 的实例
@@ -75,23 +76,25 @@ public final class Machine {
 	privilege.machine = new MachinePrivilege();
 
 
-	//将TCB中的某个权限给privilege
+	//将此privilege赋予TCB
 	TCB.givePrivilege(privilege);
 	//初始化privilege的状态为
 	privilege.stats = stats;
 
+	//会运行一个PrivilegedAction类的对象（一个java的安全控制模型？）  并赋予相应的特权
 	securityManager.enable();
 
 	createDevices();
 	checkUserClasses();
 
-	//new
+	//new  创建了一个自动加载器类的对象
 	autoGrader = (AutoGrader) Lib.constructObject(autoGraderClassName);
 
-	//启动程序
+	//启动程序  new一个tcb  并且启动一个java的线程 用来启动测试程序
 	new TCB().start(new Runnable() {
 	    public void run() {
-	    	//启动测试程序
+	    	//启动测试程序  会初始化一个kernel  然后执行run  执行kernel的run方法  第一个实验是threadkernel
+			// ThreadKernel中会new一个 Kthread 然后
 	    	autoGrader.start(privilege); }
 	});
     }

@@ -22,6 +22,9 @@ public final class Config {
      */
     //从指定文件加载配置信息。必须被调用
 	//*安装Nachos安全管理器之前。
+
+
+	//读取 配置文件信息 存取hashmap中  使用时 根据key取出value
     public static void load(String fileName) {
 	System.out.print(" config");
 	

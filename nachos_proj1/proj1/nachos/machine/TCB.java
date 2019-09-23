@@ -97,9 +97,10 @@ public final class TCB {
 	 */
 
 	//在这一点上，所有的检查都完成了，所以我们继续并启动tcb。不管这是否是第一个tcb，
-	// 它都会被添加到runningthreads中，然后我们保存目标闭包。
+	// 它都会被添加到runningthreads中，runningThreads中保存了nachos的所有tcb
 	runningThreads.add(this);
 
+	//当前tcb对应的java线程
 	this.target = target;
 
 	if (!isFirstTCB) {
@@ -128,14 +129,14 @@ public final class TCB {
 	    currentTCB.running = false;
 	    //此TCB对应的java 线程start
 	    this.javaThread.start();
-	    //等待中断
+	    //等待中断 将当前的java线程wait（）
 	    currentTCB.waitForInterrupt();
 	}
 	else {
 	    /* This is the first TCB, so we don't need to make a new Java
 	     * thread to run it; we just steal the current Java thread.
 	     */
-	    //这是第一个TCB，所以我们不需要用一个新的Java线程来运行它，我们只是窃取当前的Java线程。
+	    //这是第一个TCB，所以我们不需要用一个新的Java线程来运行它  只需吧当前java线程给他即可
 	    javaThread = Thread.currentThread();
 
 	    /* All we have to do now is invoke threadroot() directly. */
@@ -159,6 +160,7 @@ public final class TCB {
      */
 
     //上下文切换
+	//当前TCB和此TCB之间的上下文切换。这个tcb将成为新的当前tcb。此TCB可以作为当前TCB。
     public void contextSwitch() {
 	/* Probably unnecessary sanity check: we make sure that the current
 	 * thread is bound to the current TCB. This check can only fail if
@@ -263,7 +265,11 @@ public final class TCB {
 
 	    //start（）等待唤醒  表示可以切换上下文  将running标记变成false 以便 sleep之前仍然可以进行上下文切换 然后运行它
 		//我们要做的就是唤醒当前TCB  然后等待被contextSwitch() or destroy().唤醒
+
+
+		//将当前tcb  running赋值为true
 	    currentTCB.interrupt();
+	    //然后 让此对象 对应的tcb
 	    this.yield();
 	}
 	else {
