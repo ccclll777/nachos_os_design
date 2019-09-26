@@ -60,9 +60,12 @@ public class Condition2 {
 	//将线程添加到等待队列
         waitQueue.waitForAccess(KThread.currentThread());
 
-	conditionLock.release();
+        //在条件变量的控制下 进入sleep函数 释放自己的锁 进入睡眠 当有线程wake他时， 在去获得锁
+        //阻塞的线程在sleep函数返回前   将继续拥有锁
+        //调用这个方法的线程将自己挂起到等待队列  阻塞自己的同时将自己拥有的锁交出去  之后等待唤醒 重新拥有锁
+	conditionLock.release();//进程将锁释放
         KThread.sleep();
-	conditionLock.acquire();
+	conditionLock.acquire();//线程唤醒之后  处于就绪队列 将获得锁
         Machine.interrupt().restore(InterruptStatus);
     }
 

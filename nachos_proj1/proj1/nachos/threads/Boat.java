@@ -65,7 +65,7 @@ public class Boat
 //	begin(0, 2, b);
 
 	System.out.println("\n ***Testing Boats with 4 children, 4 adult***");
-  	begin(4, 4, b);
+  	begin(1, 2, b);
 
 //  	System.out.println("\n ***Testing Boats with 3 children, 3 adults***");
 //  	begin(3, 3, b);
@@ -208,7 +208,6 @@ public class Boat
             else//如果船在M岛  小孩怎么做
             {
 
-                //小孩要驾驶船去M岛
                 numOfChildrenOnOahu += 1;
                 numOfChildrenOnMolokai -= 1;
                 position = Oahu;

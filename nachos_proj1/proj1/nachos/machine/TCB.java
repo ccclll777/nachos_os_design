@@ -126,10 +126,15 @@ public final class TCB {
 	     //Java线程还没有启动，但我们需要将它阻塞在内存中。我们通过暂时关闭当前的TCB，启动新的Java线程，
 		//并等待它从threadroot()唤醒
 		//一旦新的tcb唤醒我们，就可以安全地将上下文切换到新的tcb。
+
+		//说明新得tcb被唤醒 则当前正常运行的tcb 的运行状态变为false
 	    currentTCB.running = false;
 	    //此TCB对应的java 线程start
+
+		//然后这个tcb对应的java线程 启动
 	    this.javaThread.start();
 	    //等待中断 将当前的java线程wait（）
+		//表示当前正在运行的tcb可以被中断  切换上下文
 	    currentTCB.waitForInterrupt();
 	}
 	else {
@@ -193,8 +198,10 @@ public final class TCB {
 		// 并将其running标志设置为false（这样，如果在调用yield（）之前中断，中断将设置running标志并且yield（）不会阻塞）
 	TCB previous = currentTCB;
 	previous.running = false;
-	
+
+	//当前tcb表示的线程 可以占用cpu开始执行
 	this.interrupt();
+	//表示currentTCB要让出cpu的使用权
 	previous.yield();
     }
     
@@ -225,7 +232,10 @@ public final class TCB {
 	this.done = true;
 	currentTCB.running = false;
 
+	//可以唤醒一个线程
 	this.interrupt();
+
+	//当前tcb代表的线程要进行wait
 	currentTCB.waitForInterrupt();
 	
 	this.javaThread = null;
@@ -269,7 +279,7 @@ public final class TCB {
 
 		//将当前tcb  running赋值为true
 	    currentTCB.interrupt();
-	    //然后 让此对象 对应的tcb
+	    //然后 让此对象 对应的tcb 等待唤醒
 	    this.yield();
 	}
 	else {
@@ -278,10 +288,12 @@ public final class TCB {
 	     */
 	    //start（）直接调用了我们，所以我们只需要初始化一些东西。
 	    currentTCB = this;
+	    //当前进程正常运行
 	    running = true;
 	}
 
 	try {
+		//执行target代表的java线程
 	    target.run();
 
 	    // no way out of here without going throw one of the catch blocks
@@ -327,9 +339,11 @@ public final class TCB {
 	//因为这个TCB可能会被破坏，所以我们在唤醒后检查 <tt>done</tt>标记
 	//如果它已经设置  如果设置了，唤醒我们的tcb将在destroy（）中等待确认。否则，我们只需将当前tcb设置为此tcb并返回。
     private void yield() {
+    	//将此线程  wait（）
 	waitForInterrupt();
 	
 	if (done) {
+		//然后唤醒 一个新的java线程（tcb）
 	    currentTCB.interrupt();
 	    throw new ThreadDeath();
 	}

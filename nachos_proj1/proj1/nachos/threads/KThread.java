@@ -77,6 +77,7 @@ public class KThread {
     public KThread() {
 	if (currentThread != null) {
 	    tcb = new TCB();
+	    //初始化一个join队列
 		joinQueue =ThreadedKernel.scheduler.newThreadQueue(false);
 	}	    
 	else {
@@ -84,7 +85,7 @@ public class KThread {
 	    readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 
 		joinQueue =ThreadedKernel.scheduler.newThreadQueue(false);
-	    //此线程被调用
+	    //此线程被调用 加入 就绪队列
 	    readyQueue.acquire(this);	    
 
 	    //当前运行的线程
@@ -96,10 +97,11 @@ public class KThread {
 	    name = "main";
 
 
-		//准备将线程启动
+		//准备将线程启动  恢复 Kthread的状态
 	    restoreState();
 
 
+	    //创建一个诶空闲的线程  不断的让权 yield  等待其他的线程执行
 	    createIdleThread();
 	}
     }
@@ -121,7 +123,7 @@ public class KThread {
      * @param	target	the object whose <tt>run</tt> method is called.
      * @return	this thread.
      */
-    //设置此线程的目标线程（调用了<tt>run</tt> 的那些线程）。
+    //设置此线程的目标线程（调用了<tt>run</tt> 的那些线程）。  此线程对应的java线程？
     public KThread setTarget(Runnable target) {
 	Lib.assertTrue(status == statusNew);
 	
@@ -205,10 +207,12 @@ public class KThread {
 
 	tcb.start(new Runnable() {
 		public void run() {
+			//恢复线程状态 并且 执行对应线程的run方法
 		    runThread();
 		}
 	    });
 
+	//将线程变为就绪状态 并且  此线程正在等待调用
 	ready();
 
 	//将进程设置为旧的中断状态
@@ -248,13 +252,15 @@ public class KThread {
 	 *     //完成当前线程并计划在安全时将其销毁。当线程的<tt>run</tt>方法返回时，会自动调用此方法，但也可以直接调用它。
 	 * 	//可能无法销毁线程  因为 堆 和其他执行程序正在使用它   当可以安全销毁此线程时  下一个要运行的线程将自动销毁此线程
 	 */
+
+	//当线程的<tt>run</tt>方法返回时，会自动调用此方法
     public static void finish() {
 	Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
 
 	//关中断
 	Machine.interrupt().disable();
 
-	//将当前线程的join队列中的线程加入ready队列
+	//将当前线程的join队列中的线程加入ready队列  表示 等待的线程已经执行完毕
 		currentThread().wakeJoiners();
 	//当前线程已完成 销毁当前线程的tcb
 	Machine.autoGrader().finishingCurrentThread();
@@ -272,7 +278,8 @@ public class KThread {
 		 */
 //		currentThread.joinSem.V();
 
-		//会执行sleep中 调用下一个线程的风发 nextthread
+		//会执行sleep中 调用下一个线程的 nextthread
+		//会调用下一个线程
 	sleep();
     }
 	/**
@@ -314,7 +321,7 @@ public class KThread {
 	 *
 	 * 中断被禁用，因此当前线程可以原子地将自身添加到就绪队列并切换到下一个线程。返回时，将中断恢复到以前的状态，以防在中断被禁用的情况下调用<tt>yield（）</tt>。
 	 */
-	//表示让出cpu的使用权
+	//表示让出cpu的使用权  将此线程再次加入就绪队列 并且运行下一个线程
 	public static void yield() {
 	Lib.debug(dbgThread, "Yielding thread: " + currentThread.toString());
 	
@@ -354,6 +361,7 @@ public class KThread {
 	 * 如果执行<tt>finish（）</tt>应该
 	 * 计划此线程被下一个要运行的线程销毁。
 	 */
+	//表示线程阻塞  运行下一个线程
 	public static void sleep() {
 	Lib.debug(dbgThread, "Sleeping thread: " + currentThread.toString());
 	
@@ -379,6 +387,7 @@ public class KThread {
 	status = statusReady;
 	//添加到就绪队列
 	if (this != idleThread)
+		//线程 已经就绪 但可能由于 缺少某个锁 不能立即执行
 	    readyQueue.waitForAccess(this);
 
 		//移到就绪状态
@@ -430,8 +439,10 @@ public class KThread {
 		}
 		else
 		{
+			//线程正在等待调用  但不能立即执行 由于缺少某种资源
 			joinQueue.waitForAccess(currentThread());
 
+			//运行下一个线程
 			sleep();
 		}
 
@@ -486,6 +497,7 @@ public class KThread {
      */
     //确定要运行的下一个线程，然后使用<tt>run（）</tt>将CPU分派给该线程
     private static void runNextThread() {
+    	//从就绪队列 取出下一个 执行的线程
 	KThread nextThread = readyQueue.nextThread();
 	if (nextThread == null)
 	    nextThread = idleThread;
@@ -725,6 +737,8 @@ public class KThread {
 
 
     private static ThreadQueue readyQueue = null;
+
+
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
     //空闲线程   猜测 ： 当cpu没有线程 运行是 会运行这个线程  然后执行yield方法

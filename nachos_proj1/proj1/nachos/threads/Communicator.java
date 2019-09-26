@@ -43,7 +43,7 @@ public class Communicator {
     public void speak(int word) {
 
         conditionLock.acquire();
-        //如果有说者  或者没有听者  则挂起
+        //如果已经有说者
         while (numOfSpeaker !=0)
         {
             speakerSending.sleep();
@@ -51,6 +51,7 @@ public class Communicator {
         this.message = word;
 //        System.out.println("写者"+KThread.currentThread().getName()+"写了"+this.message);
         numOfSpeaker++;
+        //如果没有听者
         while (numOfListener == 0)
         {
             speakerSending.sleep();
@@ -72,11 +73,13 @@ public class Communicator {
 
         conditionLock.acquire();
         numOfListener++;
+        //如果有1个听者  且有说者  则 唤醒一个说者
         if(numOfListener == 1 && numOfSpeaker !=0 )
         {
             speakerSending.wake();
         }
 //        System.out.println("读者"+KThread.currentThread().getName()+"读取了"+this.message);
+        //听者 等待说者 说话  说者 说完之后 会唤醒听者
         listenerReceiving.sleep();
         numOfListener--;
         conditionLock.release();

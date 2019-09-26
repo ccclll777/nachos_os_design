@@ -110,6 +110,7 @@ public class Condition {
     public void sleep() {
 	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 
+	//为等待的线程 分配一个信号量
 	Semaphore waiter = new Semaphore(0);
 	waitQueue.add(waiter);
 

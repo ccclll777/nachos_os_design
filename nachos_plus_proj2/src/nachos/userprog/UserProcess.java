@@ -173,18 +173,96 @@ public class UserProcess {
     //将数据从该进程的虚拟内存传输到指定的数组。
     // 此方法处理地址转换详细信息。如果发生错误，此方法必须 <i>not</i> 销毁当前进程，
     // 而是应返回成功复制的字节数（如果无法复制任何数据，则返回零）。
+
+    //读内存时 利用页表 将逻辑地址转化为物理地址  然后将内存复制到数组中
     public int readVirtualMemory(int vaddr, byte[] data, int offset,
                                  int length) {
         Lib.assertTrue(offset >= 0 && length >= 0 && offset + length <= data.length);
 
+        Lib.assertTrue((pageSize *numPages -vaddr) < length ,"地址越界");
+
+
         byte[] memory = Machine.processor().getMemory();
 
-        // for now, just assume that virtual addresses equal physical addresses
-        if (vaddr < 0 || vaddr >= memory.length)
-            return 0;
+        /**
+         * 一种实现
+         */
+//        //从地址中提取 虚拟页的页码
+//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
+//
+//        //从地址中提取偏移分量。
+//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
+//
+//
+//        if (virtualPageNum >= numPages) {
+//            return -1;
+//        }
+//
+//        TranslationEntry entry = pageTable[virtualPageNum];
+//
+//        if (entry == null)
+//            return 0;
+//        if (entry.valid == false)
+//            return -1;
+//
+//        entry.used = true;
+//
+//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+//            return 0;
+//        }
+//
+//        //物理地址 为  物理页号*页表大小 +页偏移
+//        int paddr = entry.ppn * pageSize + addrOffset;
+//
+//        int amount = Math.min(length, memory.length - paddr);
+//        System.arraycopy(memory, paddr, data, offset, amount);
 
-        int amount = Math.min(length, memory.length - vaddr);
-        System.arraycopy(memory, vaddr, data, offset, amount);
+
+        /**
+         * 另一种实现  可以防止跨页问题
+         */
+
+        int amount = 0;
+        do {
+            //从地址中提取 虚拟页的页码
+            int virtualPageNum = Machine.processor().pageFromAddress(vaddr+amount);
+
+            if (virtualPageNum >= numPages) {
+                return -1;
+            }
+
+            //从地址中提取偏移分量。
+            int addrOffset = Machine.processor().offsetFromAddress(vaddr +amount);
+
+            int bytesLeftInPage = pageSize - addrOffset;
+
+            int bytesToRead = Math.min(bytesLeftInPage, length - amount);
+            TranslationEntry entry = pageTable[virtualPageNum];
+
+            if (entry == null)
+                return 0;
+            if (entry.valid == false)
+                return -1;
+
+            entry.used = true;
+
+            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+                return 0;
+            }
+
+            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
+            System.arraycopy(memory, physicalAddr, data, offset + amount, bytesToRead);
+            amount += bytesToRead;
+
+        } while (amount < length);
+
+
+        // for now, just assume that virtual addresses equal physical addresses
+//        if (vaddr < 0 || vaddr >= memory.length)
+//            return 0;
+//
+//        int amount = Math.min(length, memory.length - vaddr);
+//        System.arraycopy(memory, vaddr, data, offset, amount);
 
         return amount;
     }
@@ -219,6 +297,8 @@ public class UserProcess {
      * @return the number of bytes successfully transferred.
      */
     //将数据从指定数组传输到此进程的虚拟内存。
+
+    //写内存时 利用页表 将逻辑地址转化为物理地址  然后将数组中的内容 复制到内存中
     public int writeVirtualMemory(int vaddr, byte[] data, int offset,
                                   int length) {
         Lib.assertTrue(offset >= 0 && length >= 0 && offset + length <= data.length);
@@ -226,12 +306,79 @@ public class UserProcess {
         //返回用户程序的主存储器
         byte[] memory = Machine.processor().getMemory();
 
-        // for now, just assume that virtual addresses equal physical addresses
-        if (vaddr < 0 || vaddr >= memory.length)
-            return 0;
+        /**
+         *
+         * 一种实现
+         */
+//                //从地址中提取 虚拟页的页码
+//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
+//
+//        //从地址中提取偏移分量。
+//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
+//
+//
+//        if (virtualPageNum >= numPages) {
+//            return -1;
+//        }
+//        TranslationEntry entry = pageTable[virtualPageNum];
+//
+//        if (entry == null)
+//            return 0;
+//        //查看此页是否是只读的
+//
+//        if (entry.valid == false || entry.readOnly)
+//            return -1;
+//
+//        entry.used = true;
+//        entry.dirty = true;
+//
+//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+//            return 0;
+//        }
+//
+//        int physicalAddr = entry.ppn * pageSize + addrOffset;
+//        int amount = Math.min(length, memory.length - physicalAddr);
+//        System.arraycopy(data, offset, memory, vaddr, amount);
 
-        int amount = Math.min(length, memory.length - vaddr);
-        System.arraycopy(data, offset, memory, vaddr, amount);
+
+        /**
+         *
+         * 另一种实现
+         */
+       int amount = 0;
+        do {
+            int virtualPageNum = Processor.pageFromAddress(vaddr + amount);
+            int addrOffset = Processor.offsetFromAddress(vaddr + amount);
+            TranslationEntry entry = pageTable[virtualPageNum];
+
+            if (entry == null)
+                return 0;
+            //查看此页是否是只读的
+
+            if (entry.valid == false || entry.readOnly)
+                return -1;
+
+            entry.used = true;
+            entry.dirty = true;
+
+            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+                return 0;
+            }
+
+            int bytesLeftInPage = pageSize - addrOffset;
+            int bytesToWrite = Math.min(bytesLeftInPage, length - amount);
+
+            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
+            System.arraycopy(data, offset + amount, memory, physicalAddr, bytesToWrite);
+            amount += bytesToWrite;
+        } while (amount < length);
+
+        // for now, just assume that virtual addresses equal physical addresses
+//        if (vaddr < 0 || vaddr >= memory.length)
+//            return 0;
+//
+//        int amount = Math.min(length, memory.length - vaddr);
+//        System.arraycopy(data, offset, memory, vaddr, amount);
 
         return amount;
     }
@@ -248,6 +395,8 @@ public class UserProcess {
      */
     //将具有指定名称的可执行文件加载到此进程中，并准备将指定参数传递给它。
     // 打开可执行文件，读取其头信息，并将节和参数复制到此进程的虚拟内存中。
+
+    //从磁盘装入进程  需要装入一个coff的对象  包含若干个段  每一段是一个coffsection的对象 包含若干个页，
     private boolean load(String name, String[] args) {
         Lib.debug(dbgProcess, "UserProcess.load(\"" + name + "\")");
 
@@ -350,17 +499,26 @@ public class UserProcess {
 
         }
         // load sections
+        //加载coff的  section
         for (int s = 0; s < coff.getNumSections(); s++) {
             CoffSection section = coff.getSection(s);
             Lib.debug(dbgProcess, "\tinitializing " + section.getName()
                     + " section (" + section.getLength() + " pages)");
 
             for (int i = 0; i < section.getLength(); i++) {
-                int vpn = section.getFirstVPN() + i;
+                int virtualPageNum = section.getFirstVPN() + i;
 
+                TranslationEntry entry = pageTable[virtualPageNum];
+                //给页表中的一页赋值 是否只读
+                entry.readOnly = section.isReadOnly();
+                //对应的 物理页号
+                int ppn = entry.ppn;
+
+                //将此段中的 第i页 加载到物理内存的第ppn页
+                section.loadPage(i, ppn);
                 // for now, just assume virtual addresses=physical addresses
                 //假设物理地址等于虚拟地址
-                section.loadPage(i, vpn);
+//                section.loadPage(i, vpn);
             }
         }
 
@@ -372,6 +530,16 @@ public class UserProcess {
      */
     //释放由<tt>loadSections（）</tt>分配的任何资源。
     protected void unloadSections() {
+        coff.close();
+
+        for (int i = 0; i < numPages; ++i) {
+            //释放之前分配的页表
+            UserKernel.addFreePage(pageTable[i].ppn);
+            pageTable[i] = null;
+        }
+
+        //将页表置为空
+        pageTable = null;
     }
 
     /**
@@ -419,7 +587,7 @@ public class UserProcess {
     //若进程已打开相同的文件描述符 则不创建 返回该文件的文件描述符
 
     private int handleCreate(int filenameAddress) {
-        //使用readVirtualMemoryString方法进行读取
+        //使用readVirtualMemoryString方法进行读取    读取虚拟内存中的文件名（根据 初始地址和长度）
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
             Lib.debug(dbgProcess,"没有找到文件名");
@@ -506,6 +674,7 @@ public class UserProcess {
         if (readSize <= 0)
             return 0;
 
+        //从内存中读出数据  写入 虚拟内存（主存？） 然后返回字节数
         int writeSize = writeVirtualMemory(virtualAddress, buffer, 0, readSize);
         return writeSize;
     }
@@ -521,7 +690,7 @@ public class UserProcess {
         if (fd.getFile() == null)
             return -1;
         byte[] buffer = new byte[bufferSize];
-        //读取主存中的信息
+        //读取主存中的信息  虚拟内存
         int readSize = readVirtualMemory(virtualAddress, buffer);
         if (readSize == -1)
             return -1;

@@ -128,6 +128,7 @@ public class Alarm {
 
     //存放需要wait线程的队列
     private PriorityQueue<KThreadWakeime> wakeQueue;
+
     //保证修改队列原子性的锁
     private Lock queueLock;
 
