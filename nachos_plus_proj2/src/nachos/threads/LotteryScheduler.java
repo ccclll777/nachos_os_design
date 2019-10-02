@@ -20,23 +20,304 @@ package nachos.threads;
  * Unlike a priority scheduler, these tickets add (as opposed to just taking
  * the maximum).
  */
-public class LotteryScheduler extends PriorityScheduler {
-    /**
-     * Allocate a new lottery scheduler.
-     */
+
+/**
+ * 使用抽签选择线程的调度程序。
+ *
+ * 彩票调度程序将多张彩票与每个线程关联起来。当一个线程需要出列时，在所有等待出列的线程的所有票中，会举行随机抽签。选择持有中奖票的线程。
+ *
+ * 请注意，彩票调度程序必须能够处理大量彩票（有时是数十亿张），因此不能为每个彩票维护状态。
+ *
+ * 彩票调度程序必须部分解决优先级反转问题；在
+ * 特别是，票必须通过锁和连接进行传输。
+ * 与优先级调度程序不同，这些票据会添加（而不是只获取最大值）。
+ *
+ */
+
+/**
+ * 在调度过程中  并不是选择彩票数最多的线程运行   而是随机抽取一张彩票  让彩票的主人运行   这样 彩票越多 下次运行的机会越大
+ */
+
+import nachos.machine.Lib;
+import nachos.machine.Machine;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.TreeSet;
+
+/**
+ * 流程：  统计总的彩票数  生成合理中奖彩票   找出持有者  调度
+ */
+public class LotteryScheduler extends Scheduler {
     public LotteryScheduler() {
     }
-    
-    /**
-     * Allocate a new lottery thread queue.
-     *
-     * @param	transferPriority	<tt>true</tt> if this queue should
-     *					transfer tickets from waiting threads
-     *					to the owning thread.
-     * @return	a new lottery thread queue.
-     */
+
     public ThreadQueue newThreadQueue(boolean transferPriority) {
-	// implement me
-	return null;
+        return new LotteryQueue(transferPriority);
+    }
+
+    public int getPriority(KThread thread) {
+        Lib.assertTrue(Machine.interrupt().disabled());
+
+        return getThreadState(thread).getPriority();
+    }
+
+    public int getEffectivePriority(KThread thread) {
+        Lib.assertTrue(Machine.interrupt().disabled());
+
+        return getThreadState(thread).getEffectivePriority();
+    }
+
+    public void setPriority(KThread thread, int priority) {
+        Lib.assertTrue(Machine.interrupt().disabled());
+
+        Lib.assertTrue(priority >= priorityMinimum &&
+                priority <= priorityMaximum);
+
+        getThreadState(thread).setPriority(priority);
+    }
+
+    public boolean increasePriority() {
+        boolean intStatus = Machine.interrupt().disable();
+
+        KThread thread = KThread.currentThread();
+
+        int priority = getPriority(thread);
+        if (priority == priorityMaximum)
+            return false;
+
+        setPriority(thread, priority+1);
+
+        Machine.interrupt().restore(intStatus);
+        return true;
+    }
+
+    public boolean decreasePriority() {
+        boolean intStatus = Machine.interrupt().disable();
+
+        KThread thread = KThread.currentThread();
+
+        int priority = getPriority(thread);
+        if (priority == priorityMinimum)
+            return false;
+
+        setPriority(thread, priority-1);
+
+        Machine.interrupt().restore(intStatus);
+        return true;
+    }
+
+    public static final int priorityDefault = 1;
+
+    public static final int priorityMinimum = 0;
+
+    public static final int priorityMaximum = Integer.MAX_VALUE;
+
+    protected ThreadState getThreadState(KThread thread) {
+        if (thread.schedulingState == null)
+            thread.schedulingState = new ThreadState(thread);
+
+        return (ThreadState) thread.schedulingState;
+    }
+
+    protected class LotteryQueue extends ThreadQueue {
+        LotteryQueue(boolean transferPriority) {
+            this.transferPriority = transferPriority;
+
+            waitThreadsSet = new TreeSet<ThreadState>();
+        }
+
+        //将线程加入  等待队列中
+        public void waitForAccess(KThread thread) {
+            Lib.assertTrue(Machine.interrupt().disabled());
+            //表示此线程 在等待  此队列上的锁
+            getThreadState(thread).waitForAccess(this);
+        }
+
+        //表示此线程  已经获得锁 可以开始执行
+        public void acquire(KThread thread) {
+            Lib.assertTrue(Machine.interrupt().disabled());
+            getThreadState(thread).acquire(this);
+            if(transferPriority) //
+                //当前队列持有锁的线程 是此线程
+                holdThread = getThreadState(thread);
+        }
+
+        public KThread nextThread() {
+            Lib.assertTrue(Machine.interrupt().disabled());
+            // implement me
+            ThreadState temp = pickNextThread(); //
+            if(temp == null) //
+                return null;
+            else
+                return temp.thread;
+        }
+
+        /**
+         * Return the next thread that <tt>nextThread()</tt> would return,
+         * without modifying the state of this queue.
+         *
+         * @return	the next thread that <tt>nextThread()</tt> would
+         *		return.
+         */
+
+        protected ThreadState NextThread() { //
+
+            int sum = 0;
+            if (waitThreadsSet.isEmpty()) return null;
+            for (ThreadState threadState : waitThreadsSet) {
+                //获取彩票总数
+                sum += threadState.getEffectivePriority();
+            }
+
+            int tmp = 0;
+            //生成彩票随机数
+            int lotteryValue = (new Random()).nextInt(sum) + 1;
+
+            //寻找被随机到的  进程
+            for (ThreadState threadState : waitThreadsSet) {
+                tmp += threadState.effectivePriority;
+                if (tmp >= lotteryValue) {
+                    waitThreadsSet.remove(threadState);
+                    return threadState;
+                }
+            }
+            return null;
+        }
+
+        protected ThreadState pickNextThread() {
+            // implement me
+            //取出⼀一个被彩票 抽中的线程
+            ThreadState res = NextThread(); //
+            if(holdThread!=null) //
+            {
+                //将此队列 移除  刚才 拥有此队列锁的线程  的WaitResourceQueues  因为要更换 一个新的拥有锁的线程
+                holdThread.holdQueues.remove(this);
+                holdThread.getEffectivePriority();
+                //此队列现在拥有锁的线程 应该是当前执行的线程
+                holdThread=res;
+            }
+            if(res!=null) //
+                res.waitQueue = null;
+            return res;
+        }
+
+        public void print() {
+            Lib.assertTrue(Machine.interrupt().disabled());
+        }
+
+        public void add(ThreadState thread) { //
+            waitThreadsSet.add(thread);
+        }
+
+        public boolean isEmpty() { //
+            return waitThreadsSet.isEmpty();
+
+        }
+
+        protected long cnt = 0; //
+        public boolean transferPriority;
+        //protected TreeSet<ThreadState> waitThreads[] = new TreeSet[priorityMaximum+1];
+        protected TreeSet<ThreadState> waitThreadsSet ;
+        protected ThreadState holdThread = null; //
+
+    }
+
+    protected class ThreadState /**/implements Comparable<ThreadState>/**/{
+        public ThreadState(KThread thread) {
+            this.thread = thread;
+            setPriority(priorityDefault);
+            getEffectivePriority(); //
+        }
+
+        public int compareTo(ThreadState target) {
+            if (this.effectivePriority > target.effectivePriority)
+                return 1;
+            else if (this.effectivePriority < target.effectivePriority)
+                return -1;
+            else {
+                if (this.time > target.time)
+                    return 1;
+                if (this.time < target.time)
+                    return -1;
+                return 0;
+            }
+        }
+
+        public int getPriority() {
+            return priority;
+        }
+
+        public int getEffectivePriority() { //
+            int temp = priority;
+
+            if(!holdQueues.isEmpty())
+            {
+                Iterator<LotteryQueue> iterator=holdQueues.iterator();
+                while(iterator.hasNext())
+                {
+                    LotteryQueue holdQueue = (LotteryQueue)iterator.next();
+
+                    //获得某个线程的 有效彩票数  可以叠加
+                    for (ThreadState threadState : holdQueue.waitThreadsSet) {
+                        temp += threadState.effectivePriority;
+                    }
+
+                }
+            }
+            //重新计算自己拥有的 彩票数
+            if(waitQueue!=null&&temp!=effectivePriority)
+            {
+                ((LotteryQueue) waitQueue).waitThreadsSet.remove(this);
+                this.effectivePriority = temp;
+                ((LotteryQueue) waitQueue).waitThreadsSet.add(this);
+            }
+            if(holdThread!=null)
+
+                holdThread.getEffectivePriority();
+            return (effectivePriority=temp);
+        }
+
+        public void setPriority(int priority) {
+            if (this.priority == priority)
+                return;
+
+            this.priority = priority;
+
+            // implement me
+            getEffectivePriority(); //
+        }
+
+        public void waitForAccess(LotteryQueue waitQueue) { //
+            // implement me
+            Lib.assertTrue(Machine.interrupt().disabled());
+            //waitQueue拥有资源 等待调⽤ 优先级可能不够高
+            time=++waitQueue.cnt;
+            this.waitQueue=waitQueue;
+            //将此线程 加入 等待队列的   等待资源的线程的 数据结构中
+            waitQueue.add(this);
+            //此线程需要的资源  被等待队列中那个 拥有锁的线程 拿着
+            holdThread=waitQueue.holdThread;
+            //获取自己的有效优先权
+            getEffectivePriority();
+        }
+
+
+        public void acquire(LotteryQueue waitQueue) { //
+            // implement me
+            Lib.assertTrue(Machine.interrupt().disabled());
+            if(waitQueue.transferPriority)
+                //所以将waitQueue加入  此线程的 等待资源的队列中
+                holdQueues.add(waitQueue);
+            Lib.assertTrue(waitQueue.isEmpty());
+        }
+
+        protected KThread thread;
+        protected int priority/**/, effectivePriority;
+        protected long time; //
+        protected ThreadQueue waitQueue=null; //表示 所处的等待队列
+        protected LinkedList<LotteryQueue> holdQueues = new LinkedList<LotteryQueue>(); //表示 ⼦子孙线程 等待它拥有资源的线程队列  等待队列
+        protected ThreadState holdThread=null; // //该线程等待队列中 拥有锁的线程
     }
 }

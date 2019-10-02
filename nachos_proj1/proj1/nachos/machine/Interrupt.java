@@ -168,6 +168,7 @@ public final class Interrupt {
     //将时钟时间增加
 	//根据Nachos是处于用户模式还是内核模式，将时间提前1或10个滴答。
 	// 每当中断从禁用变为启用时，setStatus（）都会调用它，在执行每个用户指令后，processor.run（）也会调用它。
+
     private void tick(boolean inKernelMode) {
 
     	//状态

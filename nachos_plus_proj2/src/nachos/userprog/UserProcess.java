@@ -6,6 +6,7 @@ import nachos.userprog.*;
 
 import java.io.EOFException;
 import java.util.Hashtable;
+import java.util.LinkedList;
 
 /**
  * Encapsulates the state of a user process that is not contained in its
@@ -16,8 +17,8 @@ import java.util.Hashtable;
  * This class is extended by other classes to support additional functionality
  * (such as additional syscalls).
  *
- * @see    nachos.vm.VMProcess
- * @see    nachos.network.NetProcess
+ * @see nachos.vm.VMProcess
+ * @see nachos.network.NetProcess
  */
 //用户进程；管理地址空间，并将程序加载到虚拟内存中。
 
@@ -31,6 +32,7 @@ public class UserProcess {
      * Allocate a new process.
      */
     private int pid;//当前用户进程的id  作为进程的唯一标识
+    private int ppid;//当前子进程的父进程号
     private static int processCount = 0;//所有的进程数量
     //用Hashtable来存放 所有的用户进程以及对应的编号  Hashtable的方法是Synchronize的 可以解决并发问题 （1）确保线程互斥的访问同步代码（2）保证共享变量的修改能够及时可见（3）有效解决重排序问题。
     private static Hashtable<Integer, UserProcess> userProcessHashtable = new Hashtable<Integer, UserProcess>();
@@ -43,12 +45,24 @@ public class UserProcess {
 
     private FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
 
+    private LinkedList<Integer> childProcesses = new LinkedList<Integer>();//存放子进程进程号的数组
+
+
+    private UThread thread;//对应的用户线程
+
+
+    private int exitStatus;//退出状态
+
+
     public UserProcess() {
         //确保每个pid对应一个进程
         Machine.interrupt().disable();
         //给每一个运行的进程一个唯一的编号
         pid = processCount++;
         Machine.interrupt().enable();
+
+        userProcessHashtable.put(pid, this);
+
 
         //初始化 文件描述符数组
         for (int i = 0; i < MaxFileDescriptor; ++i) {
@@ -91,7 +105,9 @@ public class UserProcess {
         if (!load(name, args))
             return false;
 
-        new UThread(this).setName(name).fork();
+//        new UThread(this).setName(name).fork();
+        thread = new UThread(this);
+        thread.setName(name).fork();
 
         return true;
     }
@@ -179,7 +195,7 @@ public class UserProcess {
                                  int length) {
         Lib.assertTrue(offset >= 0 && length >= 0 && offset + length <= data.length);
 
-        Lib.assertTrue((pageSize *numPages -vaddr) < length ,"地址越界");
+        Lib.assertTrue((pageSize * numPages - vaddr) < length, "地址越界");
 
 
         byte[] memory = Machine.processor().getMemory();
@@ -225,14 +241,14 @@ public class UserProcess {
         int amount = 0;
         do {
             //从地址中提取 虚拟页的页码
-            int virtualPageNum = Machine.processor().pageFromAddress(vaddr+amount);
+            int virtualPageNum = Machine.processor().pageFromAddress(vaddr + amount);
 
             if (virtualPageNum >= numPages) {
                 return -1;
             }
 
             //从地址中提取偏移分量。
-            int addrOffset = Machine.processor().offsetFromAddress(vaddr +amount);
+            int addrOffset = Machine.processor().offsetFromAddress(vaddr + amount);
 
             int bytesLeftInPage = pageSize - addrOffset;
 
@@ -345,7 +361,7 @@ public class UserProcess {
          *
          * 另一种实现
          */
-       int amount = 0;
+        int amount = 0;
         do {
             int virtualPageNum = Processor.pageFromAddress(vaddr + amount);
             int addrOffset = Processor.offsetFromAddress(vaddr + amount);
@@ -495,7 +511,7 @@ public class UserProcess {
             //分配物理页数
             int ppn = UserKernel.getFreePage();
             // //虚拟页数   物理页数  标记位   只读位    是否被使用》  脏位
-            pageTable[i] = new TranslationEntry(i, ppn, true,false,false,false);
+            pageTable[i] = new TranslationEntry(i, ppn, true, false, false, false);
 
         }
         // load sections
@@ -573,7 +589,7 @@ public class UserProcess {
     private int handleHalt() {
         //只有第一个进程才能调用handleHalt的系统调用  如果其他进程想调用 则会立即返回
         if (this.pid != 0) {
-            Lib.debug(dbgProcess,"只有第一个用户进程才能执行 handleHalt()");
+            Lib.debug(dbgProcess, "只有第一个用户进程才能执行 handleHalt()");
             return -1;
         }
         Machine.halt();
@@ -590,21 +606,21 @@ public class UserProcess {
         //使用readVirtualMemoryString方法进行读取    读取虚拟内存中的文件名（根据 初始地址和长度）
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
-            Lib.debug(dbgProcess,"没有找到文件名");
+            Lib.debug(dbgProcess, "没有找到文件名");
             return -1;
         }
 
         //使用文件系统 的open方法  第二个参数为true  表示 如果没有则创建一个新文件
         OpenFile returnValue = UserKernel.fileSystem.open(filename, true);
         if (returnValue == null) {
-            Lib.debug(dbgProcess,"创建文件夹失败");
+            Lib.debug(dbgProcess, "创建文件夹失败");
             return -1;
         }
 
         //查看是否已经打开16个文件 如果没有 返回标记
         int index = findEmptyFileDescriptor();
         if (index == -1) {
-            Lib.debug(dbgProcess,"已超出用户进程拥有文件描述符的最大数量");
+            Lib.debug(dbgProcess, "已超出用户进程拥有文件描述符的最大数量");
             return -1;
         }
         FileDescriptors[index].setFileName(filename);
@@ -636,18 +652,18 @@ public class UserProcess {
         //从虚拟内存中读入文件名
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
-            Lib.debug(dbgProcess,"没有找到文件名");
+            Lib.debug(dbgProcess, "没有找到文件名");
             return -1;
         }
         OpenFile returnValue = UserKernel.fileSystem.open(filename, false);
         if (returnValue == null) {
-            Lib.debug(dbgProcess,"打开文件失败");
+            Lib.debug(dbgProcess, "打开文件失败");
             return -1;
         }
 
         int index = findEmptyFileDescriptor();
         if (index == -1) {
-            Lib.debug(dbgProcess,"已超出用户进程拥有文件描述符的最大数量");
+            Lib.debug(dbgProcess, "已超出用户进程拥有文件描述符的最大数量");
             return -1;
         }
         FileDescriptors[index].setFileName(filename);
@@ -660,9 +676,9 @@ public class UserProcess {
     //读取文件信息 将其 存续 该用户程序的虚拟内存中
     private int handleRead(int fileDescriptor, int virtualAddress, int bufferSize) {
 
-        if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0||virtualAddress<0) {
-            Lib.debug(dbgProcess,"输入有误");
-			return -1;
+        if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0 || virtualAddress < 0) {
+            Lib.debug(dbgProcess, "输入有误");
+            return -1;
         }
         FileDescriptor fd = FileDescriptors[fileDescriptor];
         if (fd.getFile() == null)
@@ -678,12 +694,12 @@ public class UserProcess {
         int writeSize = writeVirtualMemory(virtualAddress, buffer, 0, readSize);
         return writeSize;
     }
-    //将信息从主存储写入文件
-    private int handleWrite(int fileDescriptor, int virtualAddress, int bufferSize)
-    {
 
-        if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0||virtualAddress<0) {
-            Lib.debug(dbgProcess,"输入有误");
+    //将信息从主存储写入文件
+    private int handleWrite(int fileDescriptor, int virtualAddress, int bufferSize) {
+
+        if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0 || virtualAddress < 0) {
+            Lib.debug(dbgProcess, "输入有误");
             return -1;
         }
         FileDescriptor fd = FileDescriptors[fileDescriptor];
@@ -704,11 +720,9 @@ public class UserProcess {
     }
 
     //从该用户进程的文件描述符数组   移除此文件描述符
-    private int handleClose(int fileDescriptor)
-    {
+    private int handleClose(int fileDescriptor) {
 
-        if(fileDescriptor<0 ||fileDescriptor>= MaxFileDescriptor)
-        {
+        if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor) {
             return -1;
         }
 
@@ -732,16 +746,14 @@ public class UserProcess {
     }
 
     //删除某个文件  根据传入的文件名内存地址   从虚拟存储中读出  文件名
-    private int handleUnlink(int filenameAddress)
-    {
+    private int handleUnlink(int filenameAddress) {
         //从虚拟内存中  取出文件名
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         boolean returnValue = true;
         int index = findFileDescriptorByName(filename);
         if (index == -1) {
             returnValue = UserKernel.fileSystem.remove(filename);
-        }
-        else {
+        } else {
             //先关闭读取 移除文件描述符 在进行删除操作
             handleClose(filenameAddress);
             returnValue = UserKernel.fileSystem.remove(filename);
@@ -751,6 +763,145 @@ public class UserProcess {
             return -1;
         return 0;
     }
+
+
+    /**
+     *  * task 2。3  任务一
+     *      * （1）获取虚拟文件名
+     *      * （2）处理参数 首先用第三个参数作为虚拟内存地址 得到参数表数组的首地址  然后用readVirtualMemory读出每个参数
+     *      * （3）用newUserProcess创建子进程 ，将文件和参数表 加载到子进程
+     *      * （4）execute执行子进程  同时将子进程的父进程 设置为此进程 在将子进程加入到子进程列表
+     *      *
+     * @param fileAddress   程序地址
+     * @param argCount     参数个数
+     * @param argAddress            参数地址
+     * @return
+     */
+
+    private int handleExec(int fileAddress, int argCount, int argAddress) {
+        if (argCount < 1)
+            return -1;
+        //根据文件地址  读取文件名
+        String filename = readVirtualMemoryString(fileAddress, maxLength);
+
+        if (filename == null)
+            return -1;
+
+        //检测文件后缀名
+        String suffix = filename.substring(filename.length() - 5, filename.length());
+        if (!suffix.equals(".coff"))
+            return -1;
+
+        //读取参数列表
+        String args[] = new String[argCount];
+        for (int i = 0; i < argCount; ++i) {
+            byte arg[] = new byte[4];
+            int transferSize = readVirtualMemory(argAddress + i * 4, arg);
+            if (transferSize != 4)
+                return -1;
+            int RealargAddress = Lib.bytesToInt(arg, 0);
+            args[i] = readVirtualMemoryString(RealargAddress, maxLength);
+        }
+
+        UserProcess childProcess = UserProcess.newUserProcess();
+        this.childProcesses.add(childProcess.pid);
+        //当前子进程的父进程号
+        childProcess.ppid = this.pid;
+
+        boolean returnValue = childProcess.execute(filename, args);
+        if (returnValue == true) {
+            return childProcess.pid;
+        }
+        return -1;
+    }
+
+    /**
+     * join 阻塞等待某子进程 执行完毕
+     *
+     * 父进程和子进程 不共享任何内存  文件 以及其他状态
+     * 父进程只能对子进程进行join操作  如果 A执行B  B执行C  则A不能
+     *
+     * （1）首先判断是否是子进程  不是则返回-1  是则继续
+     * （2）将当前线程挂起在队列中
+     * （3）如果当前进程结束 则返回1  否则返回0
+     * @param childPid  子进程编号
+     * @param addrStatus   保存子进程编号的地址
+     * @return
+     */
+    private int handleJoin(int childPid, int addrStatus) {
+        //检查是否是自己的子线程
+        if (!childProcesses.contains(childPid)) {
+            return -1;
+        }
+        //找到子线程 然后将它移除  数据结构
+
+        for (int i = 0; i < childProcesses.size(); i++) {
+            if (childProcesses.get(i) == childPid) {
+                childProcesses.remove(i);
+                break;
+            }
+        }
+
+        UserProcess childProcess = UserProcess.findProcessByID(childPid);
+        if (childProcess == null) {
+            return -2;
+        }
+
+        childProcess.thread.join();
+        byte byteStatus[] = new byte[4];
+        byteStatus = Lib.bytesFromInt(childProcess.exitStatus);
+
+        //写入 主存的
+        int transferSize = writeVirtualMemory(addrStatus, byteStatus);
+        if (transferSize == 4) {
+            return 0;
+        }
+        return -1;
+    }
+
+    /**
+     *
+     * （1）首先关闭coff  将所有的打开文件关闭  将退出状态置入，
+     * （2）如果该进程有父进程   看是否执行了join方法 如果执行了就将其唤醒  同时将此进程从子进程链表中删除
+     * （3）调用unloadsections释放内存，调用kthread。finish结束线程
+     * （4）如果是最后一个线程 则停机
+     * @param exitStatus
+     */
+    private void handleExit(int exitStatus) {
+
+        //清除打开文件表  关闭文件
+        for (int i = 0; i < MaxFileDescriptor; ++i) {
+            if (FileDescriptors[i].getFile() != null)
+
+                handleClose(i);
+        }
+
+        for (Integer i : childProcesses) {
+            UserProcess it = UserProcess.findProcessByID(i);
+            it.ppid = 0;
+        }
+
+        this.exitStatus = exitStatus;
+        this.unloadSections();
+
+        if (this.pid == 0) {
+            Kernel.kernel.terminate();
+        }
+
+        else {
+            KThread.currentThread().finish();
+        }
+    }
+
+    //根据线程id寻找对应的线程
+    private static UserProcess findProcessByID(int id) {
+        return userProcessHashtable.get(id);
+    }
+
+    /**
+     *
+     *
+     */
     private static final int
             syscallHalt = 0,
             syscallExit = 1,

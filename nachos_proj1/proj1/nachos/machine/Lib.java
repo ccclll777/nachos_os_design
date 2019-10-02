@@ -96,6 +96,7 @@ public final class Lib {
 
 	//断言  如果错会返回错误信息
     public static void assertTrue(boolean expression, String message) {
+
 	if (!expression)
 	    throw new AssertionFailureError(message);
 }

@@ -134,7 +134,7 @@ public class ThreadedKernel extends Kernel {
     //autograder从不调用此方法，因此可以安全地添加
     //在这里测试。
     public void selfTest() {
-//	KThread.selfTest();
+	KThread.selfTest();
 //	Alarm.selfTest();
 //	Semaphore.selfTest();
 //	SynchList.selfTest();
