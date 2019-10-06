@@ -30,10 +30,10 @@ public class UThread extends KThread {
 	process.restoreState();
 
 	Machine.processor().run();
-	
+
 	Lib.assertNotReached();
     }
-    
+
     /**
      * Save state before giving up the processor to another thread.
      */
@@ -53,10 +53,10 @@ public class UThread extends KThread {
     //在再次接收处理器之前还原状态。
     protected void restoreState() {
 	super.restoreState();
-	
+
 	for (int i=0; i<Processor.numUserRegisters; i++)
 	    Machine.processor().writeRegister(i, userRegisters[i]);
-	
+
 	process.restoreState();
     }
 
@@ -81,3 +81,6 @@ public class UThread extends KThread {
     //此线程所属的进程
     public UserProcess process;
 }
+
+
+

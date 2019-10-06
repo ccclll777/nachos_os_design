@@ -2,7 +2,6 @@ package nachos.userprog;
 
 import nachos.machine.*;
 import nachos.threads.*;
-import nachos.userprog.*;
 
 import java.util.LinkedList;
 
@@ -14,8 +13,12 @@ public class UserKernel extends ThreadedKernel {
 	//空页
 	private static LinkedList<Integer> freePages = new LinkedList<Integer>();
 
+	public static int newProcessID = 0;
+
+	public static Semaphore processIDSem;
+	public static Semaphore freePagesSem;
+
 	//保证访问内存互斥的锁
-	private  static  Lock  memoryLock =  new Lock();
     /**
      * Allocate a new user kernel.
      */
@@ -35,6 +38,10 @@ public class UserKernel extends ThreadedKernel {
 	//多个用户程序之间共享控制台
 	console = new SynchConsole(Machine.console());
 
+		processIDSem = new Semaphore(1);
+		freePagesSem = new Semaphore(1);
+
+
 		int numPhysPages = Machine.processor().getNumPhysPages();
 		//初始化物理页  物理内存
 		for (int i = 0; i < numPhysPages; ++i) {
@@ -49,31 +56,31 @@ public class UserKernel extends ThreadedKernel {
     //给进程获取物理页
 	public static int getFreePage() {
 		int pageNumber = -1;
-//		boolean interruptStatus = Machine.interrupt().disable();
-		memoryLock.acquire();
+		boolean interruptStatus = Machine.interrupt().disable();
+		freePagesSem.P();
 		if (freePages.isEmpty() == false) {
 			pageNumber = freePages.removeFirst();
 		}
-//		Machine.interrupt().restore(interruptStatus);
-		memoryLock.release();
+		freePagesSem.V();
+		Machine.interrupt().restore(interruptStatus);
 		return pageNumber;
 	}
 
 	//释放物理内存
 	public static void addFreePage(int pageNumber) {
-//		boolean interruptStatus = Machine.interrupt().disable();
-		memoryLock.acquire();
+		boolean interruptStatus = Machine.interrupt().disable();
+		freePagesSem.P();
 		freePages.addFirst(pageNumber);
-		memoryLock.release();
-//		Machine.interrupt().restore(interruptStatus);
+		freePagesSem.V();
+		Machine.interrupt().restore(interruptStatus);
 	}
 
     /**
      * Test the console device.
-     */	
+     */
     public void selfTest() {
 	super.selfTest();
-
+		System.out.println("测试调度程序");
 	System.out.println("Testing the console device. Typed characters");
 	System.out.println("will be echoed until q is typed.");
 
@@ -97,7 +104,7 @@ public class UserKernel extends ThreadedKernel {
     public static UserProcess currentProcess() {
 	if (!(KThread.currentThread() instanceof UThread))
 	    return null;
-	
+
 	return ((UThread) KThread.currentThread()).process;
     }
 
@@ -134,12 +141,15 @@ public class UserKernel extends ThreadedKernel {
      *
      * @see	Machine#getShellProgramName
      */
+    //*通过创建进程和运行shell来启动用户程序
+	//*程序在里面。它必须运行的shell程序的名称由返回
+	//*<tt>machine.getShellProgramName（）</tt>。
     public void run() {
 	super.run();
 
 	UserProcess process = UserProcess.newUserProcess();
-	
-	String shellProgram = Machine.getShellProgramName();	
+
+	String shellProgram = Machine.getShellProgramName();
 	Lib.assertTrue(process.execute(shellProgram, new String[] { }));
 
 	KThread.currentThread().finish();
@@ -159,3 +169,7 @@ public class UserKernel extends ThreadedKernel {
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
 }
+
+
+
+

@@ -15,6 +15,13 @@
 int
 main()
 {
+ int i,j,k;
+    k = 3;
+    i = 2;
+    j = i-1;
+    k = i - j + k;
+    printf("Test 0 started\n");
+    printf("Creates a file, checks syscall creat works\n");
     halt();
     /* not reached */
 }

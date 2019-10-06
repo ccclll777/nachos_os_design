@@ -47,7 +47,6 @@ public class Alarm {
 
             if(kThreadWakeime.wakeTime < curTime )
             {
-                System.out.println("线程"+kThreadWakeime.thread.getName()+"已经被唤醒");
                 kThreadWakeime.thread.ready();
                 wakeQueue.poll();
             }

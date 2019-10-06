@@ -334,7 +334,9 @@ public class KThread {
 	 * 放弃CPU，因为当前线程已完成或被阻塞。此线程必须是当前线程。
 	 *
 	 * 如果当前线程被阻塞（在同步原语上，即
-	 *  <tt>Semaphore</tt>, <tt>Lock</tt>, or <tt>Condition</tt>，
+	 *  <tt>Semaphore</tt>, <tt>Lo
+	 *
+	 *  ck</tt>, or <tt>Condition</tt>，
 	 * 一些线程将唤醒此线程，并将其放回就绪队列
 	 * 以便重新调度
 	 * 如果执行<tt>finish（）</tt>应该
@@ -412,7 +414,7 @@ public class KThread {
 
 		if(status == statusFinished)
 		{
-			System.out.println("调用Join方法的线程" +id+name +"已经finish 无需继续执行");
+//			System.out.println("调用Join方法的线程" +id+name +"已经finish 无需继续执行");
 		}
 		else
 		{

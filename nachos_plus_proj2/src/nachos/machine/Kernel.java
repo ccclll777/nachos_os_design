@@ -24,6 +24,7 @@ public abstract class Kernel {
      * Initialize this kernel.
      */
     //初始化内核
+
     public abstract void initialize(String[] args);
     
     /**

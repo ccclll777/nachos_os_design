@@ -41,10 +41,7 @@ package nachos.threads;
 import nachos.machine.Lib;
 import nachos.machine.Machine;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * 流程：  统计总的彩票数  生成合理中奖彩票   找出持有者  调度
@@ -320,4 +317,127 @@ public class LotteryScheduler extends Scheduler {
         protected LinkedList<LotteryQueue> holdQueues = new LinkedList<LotteryQueue>(); //表示 ⼦子孙线程 等待它拥有资源的线程队列  等待队列
         protected ThreadState holdThread=null; // //该线程等待队列中 拥有锁的线程
     }
+
+    public static void selfTest() {
+        System.out.println("---------LotteryScheduler test---------------------");
+        LotteryScheduler s = new LotteryScheduler();
+        ThreadQueue queue = s.newThreadQueue(true);
+        ThreadQueue queue2 = s.newThreadQueue(true);
+
+        KThread thread1 = new KThread();
+        KThread thread2 = new KThread();
+        KThread thread3 = new KThread();
+        KThread thread4 = new KThread();
+        KThread thread5 = new KThread();
+        thread1.setName("thread1");
+        thread2.setName("thread2");
+        thread3.setName("thread3");
+        thread4.setName("thread4");
+        thread5.setName("thread5");
+        thread1.setPriority(10);
+        thread2.setPriority(15);
+        thread3.setPriority(20);
+        thread4.setPriority(25);
+        thread5.setPriority(30);
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+        boolean intStatus = Machine.interrupt().disable();
+        System.out.println();
+        System.out.println("~~~~~~~~Thread1 aquires queue thread2 thread3 waits~~~~~~~~~`");
+        queue.acquire(thread1);
+        queue.waitForAccess(thread2);
+        queue.waitForAccess(thread3);
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+
+        System.out.println("~~~~~~~~Thread4 aquires queue2 thread1 waits~~~~~~~~~`");
+        System.out.println();
+        queue2.acquire(thread4);
+        queue2.waitForAccess(thread1);
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+        System.out.println("~~~~~~~~thread2 priority changed to 25~~~~~~~~~`");
+        System.out.println();
+        s.getThreadState(thread2).setPriority(25);
+
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+        System.out.println();
+        System.out.println("~~~~~~~~thread2 priority changed to 15~~~~~~~~~`");
+        s.getThreadState(thread2).setPriority(15);
+
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+        System.out.println();
+        System.out.println("~~~~~~~~Thread5 waits on queue1~~~~~~~~~`");
+        queue.waitForAccess(thread5);
+
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+        System.out.println();
+        System.out.println("~~~~~~~~thread2 priority changed to 30~~~~~~~~~`");
+        s.getThreadState(thread2).setPriority(30);
+        System.out.println("thread1 EffectivePriority="+s.getThreadState(thread1).getEffectivePriority());
+        System.out.println("thread1 Priority="+s.getThreadState(thread1).getPriority());
+        System.out.println("thread2 EffectivePriority="+s.getThreadState(thread2).getEffectivePriority());
+        System.out.println("thread2 Priority="+s.getThreadState(thread2).getPriority());
+        System.out.println("thread3 EffectivePriority="+s.getThreadState(thread3).getEffectivePriority());
+        System.out.println("thread3 Priority="+s.getThreadState(thread3).getPriority());
+        System.out.println("thread4 EffectivePriority="+s.getThreadState(thread4).getEffectivePriority());
+        System.out.println("thread4 Priority="+s.getThreadState(thread4).getPriority());
+        System.out.println("thread5 EffectivePriority="+s.getThreadState(thread5).getEffectivePriority());
+        System.out.println("thread5 Priority="+s.getThreadState(thread5).getPriority());
+    }
+
+
+
 }
+

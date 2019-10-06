@@ -57,8 +57,10 @@ public class UserProcess {
     public UserProcess() {
         //确保每个pid对应一个进程
         Machine.interrupt().disable();
+        UserKernel.processIDSem.P();
         //给每一个运行的进程一个唯一的编号
         pid = processCount++;
+        UserKernel.processIDSem.V();
         Machine.interrupt().enable();
 
         userProcessHashtable.put(pid, this);
@@ -76,7 +78,7 @@ public class UserProcess {
             pageTable[i] = new TranslationEntry(i, i, true, false, false, false);
 
         FileDescriptors[stdin].setFile(UserKernel.console.openForReading());//0  为stdin
-        FileDescriptors[stdin].setFile(UserKernel.console.openForWriting()); //1  为stdout的文件描述符
+        FileDescriptors[stdout].setFile(UserKernel.console.openForWriting()); //1  为stdout的文件描述符
     }
 
     /**
@@ -96,9 +98,9 @@ public class UserProcess {
      * Execute the specified program with the specified arguments. Attempts to
      * load the program, and then forks a thread to run it.
      *
-     * @param    name    the name of the file containing the executable.
-     * @param    args    the arguments to pass to the executable.
-     * @return    <tt>true</tt> if the program was successfully executed.
+     * @param name the name of the file containing the executable.
+     * @param args the arguments to pass to the executable.
+     * @return <tt>true</tt> if the program was successfully executed.
      */
     //用指定的参数执行指定的程序。尝试加载程序，然后fork线程运行它。
     public boolean execute(String name, String[] args) {
@@ -136,10 +138,10 @@ public class UserProcess {
      * without including the null terminator. If no null terminator is found,
      * returns <tt>null</tt>.
      *
-     * @param    vaddr    the starting virtual address of the null-terminated
-     * string.
-     * @param    maxLength    the maximum number of characters in the string,
-     * not including the null terminator.
+     * @param vaddr     the starting virtual address of the null-terminated
+     *                  string.
+     * @param maxLength the maximum number of characters in the string,
+     *                  not including the null terminator.
      * @return the string read, or <tt>null</tt> if no null terminator was
      * found.
      */
@@ -164,8 +166,8 @@ public class UserProcess {
      * Transfer data from this process's virtual memory to all of the specified
      * array. Same as <tt>readVirtualMemory(vaddr, data, 0, data.length)</tt>.
      *
-     * @param    vaddr    the first byte of virtual memory to read.
-     * @param    data    the array where the data will be stored.
+     * @param vaddr the first byte of virtual memory to read.
+     * @param data  the array where the data will be stored.
      * @return the number of bytes successfully transferred.
      */
     public int readVirtualMemory(int vaddr, byte[] data) {
@@ -179,11 +181,11 @@ public class UserProcess {
      * should return the number of bytes successfully copied (or zero if no
      * data could be copied).
      *
-     * @param    vaddr    the first byte of virtual memory to read.
-     * @param    data    the array where the data will be stored.
-     * @param    offset    the first byte to write in the array.
-     * @param    length    the number of bytes to transfer from virtual memory to
-     * the array.
+     * @param vaddr  the first byte of virtual memory to read.
+     * @param data   the array where the data will be stored.
+     * @param offset the first byte to write in the array.
+     * @param length the number of bytes to transfer from virtual memory to
+     *               the array.
      * @return the number of bytes successfully transferred.
      */
     //将数据从该进程的虚拟内存传输到指定的数组。
@@ -195,7 +197,7 @@ public class UserProcess {
                                  int length) {
         Lib.assertTrue(offset >= 0 && length >= 0 && offset + length <= data.length);
 
-        Lib.assertTrue((pageSize * numPages - vaddr) < length, "地址越界");
+//        Lib.assertTrue((pageSize * numPages - vaddr) < length, "地址越界");
 
 
         byte[] memory = Machine.processor().getMemory();
@@ -203,74 +205,74 @@ public class UserProcess {
         /**
          * 一种实现
          */
-//        //从地址中提取 虚拟页的页码
-//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
-//
-//        //从地址中提取偏移分量。
-//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
-//
-//
-//        if (virtualPageNum >= numPages) {
-//            return -1;
-//        }
-//
-//        TranslationEntry entry = pageTable[virtualPageNum];
-//
-//        if (entry == null)
-//            return 0;
-//        if (entry.valid == false)
-//            return -1;
-//
-//        entry.used = true;
-//
-//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-//            return 0;
-//        }
-//
-//        //物理地址 为  物理页号*页表大小 +页偏移
-//        int paddr = entry.ppn * pageSize + addrOffset;
-//
-//        int amount = Math.min(length, memory.length - paddr);
-//        System.arraycopy(memory, paddr, data, offset, amount);
+        //从地址中提取 虚拟页的页码
+        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
+
+        //从地址中提取偏移分量。
+        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
+
+
+        if (virtualPageNum >= numPages) {
+            return -1;
+        }
+
+        TranslationEntry entry = pageTable[virtualPageNum];
+
+        if (entry == null)
+            return 0;
+        if (entry.valid == false)
+            return -1;
+
+        entry.used = true;
+
+        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+            return 0;
+        }
+
+        //物理地址 为  物理页号*页表大小 +页偏移
+        int paddr = entry.ppn * pageSize + addrOffset;
+
+        int amount = Math.min(length, memory.length - paddr);
+        System.arraycopy(memory, paddr, data, offset, amount);
 
 
         /**
          * 另一种实现  可以防止跨页问题
          */
 
-        int amount = 0;
-        do {
-            //从地址中提取 虚拟页的页码
-            int virtualPageNum = Machine.processor().pageFromAddress(vaddr + amount);
-
-            if (virtualPageNum >= numPages) {
-                return -1;
-            }
-
-            //从地址中提取偏移分量。
-            int addrOffset = Machine.processor().offsetFromAddress(vaddr + amount);
-
-            int bytesLeftInPage = pageSize - addrOffset;
-
-            int bytesToRead = Math.min(bytesLeftInPage, length - amount);
-            TranslationEntry entry = pageTable[virtualPageNum];
-
-            if (entry == null)
-                return 0;
-            if (entry.valid == false)
-                return -1;
-
-            entry.used = true;
-
-            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-                return 0;
-            }
-
-            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
-            System.arraycopy(memory, physicalAddr, data, offset + amount, bytesToRead);
-            amount += bytesToRead;
-
-        } while (amount < length);
+//        int amount = 0;
+//        do {
+//            //从地址中提取 虚拟页的页码
+//            int virtualPageNum = Machine.processor().pageFromAddress(vaddr + amount);
+//
+//            if (virtualPageNum >= numPages) {
+//                return -1;
+//            }
+//
+//            //从地址中提取偏移分量。
+//            int addrOffset = Machine.processor().offsetFromAddress(vaddr + amount);
+//
+//            int bytesLeftInPage = pageSize - addrOffset;
+//
+//            int bytesToRead = Math.min(bytesLeftInPage, length - amount);
+//            TranslationEntry entry = pageTable[virtualPageNum];
+//
+//            if (entry == null)
+//                return 0;
+//            if (entry.valid == false)
+//                return -1;
+//
+//            entry.used = true;
+//
+//            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+//                return 0;
+//            }
+//
+//            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
+//            System.arraycopy(memory, physicalAddr, data, offset + amount, bytesToRead);
+//            amount += bytesToRead;
+//
+//        } while (amount < length);
 
 
         // for now, just assume that virtual addresses equal physical addresses
@@ -288,8 +290,8 @@ public class UserProcess {
      * memory.
      * Same as <tt>writeVirtualMemory(vaddr, data, 0, data.length)</tt>.
      *
-     * @param    vaddr    the first byte of virtual memory to write.
-     * @param    data    the array containing the data to transfer.
+     * @param vaddr the first byte of virtual memory to write.
+     * @param data  the array containing the data to transfer.
      * @return the number of bytes successfully transferred.
      */
     //将指定阵列中的所有数据传输到此进程的虚拟内存。
@@ -305,11 +307,11 @@ public class UserProcess {
      * should return the number of bytes successfully copied (or zero if no
      * data could be copied).
      *
-     * @param    vaddr    the first byte of virtual memory to write.
-     * @param    data    the array containing the data to transfer.
-     * @param    offset    the first byte to transfer from the array.
-     * @param    length    the number of bytes to transfer from the array to
-     * virtual memory.
+     * @param vaddr  the first byte of virtual memory to write.
+     * @param data   the array containing the data to transfer.
+     * @param offset the first byte to transfer from the array.
+     * @param length the number of bytes to transfer from the array to
+     *               virtual memory.
      * @return the number of bytes successfully transferred.
      */
     //将数据从指定数组传输到此进程的虚拟内存。
@@ -326,68 +328,68 @@ public class UserProcess {
          *
          * 一种实现
          */
-//                //从地址中提取 虚拟页的页码
-//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
-//
-//        //从地址中提取偏移分量。
-//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
-//
-//
-//        if (virtualPageNum >= numPages) {
-//            return -1;
-//        }
-//        TranslationEntry entry = pageTable[virtualPageNum];
-//
-//        if (entry == null)
-//            return 0;
-//        //查看此页是否是只读的
-//
-//        if (entry.valid == false || entry.readOnly)
-//            return -1;
-//
-//        entry.used = true;
-//        entry.dirty = true;
-//
-//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-//            return 0;
-//        }
-//
-//        int physicalAddr = entry.ppn * pageSize + addrOffset;
-//        int amount = Math.min(length, memory.length - physicalAddr);
-//        System.arraycopy(data, offset, memory, vaddr, amount);
+        //从地址中提取 虚拟页的页码
+        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
+
+        //从地址中提取偏移分量。
+        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
+
+
+        if (virtualPageNum >= numPages) {
+            return -1;
+        }
+        TranslationEntry entry = pageTable[virtualPageNum];
+
+        if (entry == null)
+            return 0;
+        //查看此页是否是只读的
+
+        if (entry.valid == false || entry.readOnly)
+            return -1;
+
+        entry.used = true;
+        entry.dirty = true;
+
+        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+            return 0;
+        }
+
+        int physicalAddr = entry.ppn * pageSize + addrOffset;
+        int amount = Math.min(length, memory.length - physicalAddr);
+        System.arraycopy(data, offset, memory, vaddr, amount);
 
 
         /**
          *
          * 另一种实现
          */
-        int amount = 0;
-        do {
-            int virtualPageNum = Processor.pageFromAddress(vaddr + amount);
-            int addrOffset = Processor.offsetFromAddress(vaddr + amount);
-            TranslationEntry entry = pageTable[virtualPageNum];
-
-            if (entry == null)
-                return 0;
-            //查看此页是否是只读的
-
-            if (entry.valid == false || entry.readOnly)
-                return -1;
-
-            entry.used = true;
-            entry.dirty = true;
-
-            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-                return 0;
-            }
-
-            int bytesLeftInPage = pageSize - addrOffset;
-            int bytesToWrite = Math.min(bytesLeftInPage, length - amount);
-
-            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
-            System.arraycopy(data, offset + amount, memory, physicalAddr, bytesToWrite);
-            amount += bytesToWrite;
-        } while (amount < length);
+//        int amount = 0;
+//        do {
+//            int virtualPageNum = Processor.pageFromAddress(vaddr + amount);
+//            int addrOffset = Processor.offsetFromAddress(vaddr + amount);
+//            TranslationEntry entry = pageTable[virtualPageNum];
+//
+//            if (entry == null)
+//                return 0;
+//            //查看此页是否是只读的
+//
+//            if (entry.valid == false || entry.readOnly)
+//                return -1;
+//
+//            entry.used = true;
+//            entry.dirty = true;
+//
+//            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+//                return 0;
+//            }
+//
+//            int bytesLeftInPage = pageSize - addrOffset;
+//            int bytesToWrite = Math.min(bytesLeftInPage, length - amount);
+//
+//            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
+//            System.arraycopy(data, offset + amount, memory, physicalAddr, bytesToWrite);
+//            amount += bytesToWrite;
+//        } while (amount < length);
 
         // for now, just assume that virtual addresses equal physical addresses
 //        if (vaddr < 0 || vaddr >= memory.length)
@@ -405,9 +407,9 @@ public class UserProcess {
      * its header information, and copies sections and arguments into this
      * process's virtual memory.
      *
-     * @param    name    the name of the file containing the executable.
-     * @param    args    the arguments to pass to the executable.
-     * @return    <tt>true</tt> if the executable was successfully loaded.
+     * @param name the name of the file containing the executable.
+     * @param args the arguments to pass to the executable.
+     * @return <tt>true</tt> if the executable was successfully loaded.
      */
     //将具有指定名称的可执行文件加载到此进程中，并准备将指定参数传递给它。
     // 打开可执行文件，读取其头信息，并将节和参数复制到此进程的虚拟内存中。
@@ -495,7 +497,7 @@ public class UserProcess {
      * memory. If this returns successfully, the process will definitely be
      * run (this is the last step in process initialization that can fail).
      *
-     * @return    <tt>true</tt> if the sections were successfully loaded.
+     * @return <tt>true</tt> if the sections were successfully loaded.
      */
     //为该进程分配内存，并将COFF部分加载到Run（这是进程初始化的最后一步，可能会失败）。
     protected boolean loadSections() {
@@ -641,7 +643,7 @@ public class UserProcess {
     //根据文件名 寻找文件是否已经被打开
     private int findFileDescriptorByName(String filename) {
         for (int i = 0; i < MaxFileDescriptor; ++i) {
-            if (FileDescriptors[i].getFileName() == filename) {
+            if (FileDescriptors[i].getFileName().equals(filename)) {
                 return i;
             }
         }
@@ -766,15 +768,16 @@ public class UserProcess {
 
 
     /**
-     *  * task 2。3  任务一
-     *      * （1）获取虚拟文件名
-     *      * （2）处理参数 首先用第三个参数作为虚拟内存地址 得到参数表数组的首地址  然后用readVirtualMemory读出每个参数
-     *      * （3）用newUserProcess创建子进程 ，将文件和参数表 加载到子进程
-     *      * （4）execute执行子进程  同时将子进程的父进程 设置为此进程 在将子进程加入到子进程列表
-     *      *
-     * @param fileAddress   程序地址
-     * @param argCount     参数个数
-     * @param argAddress            参数地址
+     * * task 2。3  任务一
+     * * （1）获取虚拟文件名
+     * * （2）处理参数 首先用第三个参数作为虚拟内存地址 得到参数表数组的首地址  然后用readVirtualMemory读出每个参数
+     * * （3）用newUserProcess创建子进程 ，将文件和参数表 加载到子进程
+     * * （4）execute执行子进程  同时将子进程的父进程 设置为此进程 在将子进程加入到子进程列表
+     * *
+     *
+     * @param fileAddress 程序地址
+     * @param argCount    参数个数
+     * @param argAddress  参数地址
      * @return
      */
 
@@ -817,15 +820,16 @@ public class UserProcess {
 
     /**
      * join 阻塞等待某子进程 执行完毕
-     *
+     * <p>
      * 父进程和子进程 不共享任何内存  文件 以及其他状态
      * 父进程只能对子进程进行join操作  如果 A执行B  B执行C  则A不能
-     *
+     * <p>
      * （1）首先判断是否是子进程  不是则返回-1  是则继续
      * （2）将当前线程挂起在队列中
      * （3）如果当前进程结束 则返回1  否则返回0
-     * @param childPid  子进程编号
-     * @param addrStatus   保存子进程编号的地址
+     *
+     * @param childPid   子进程编号
+     * @param addrStatus 保存子进程编号的地址
      * @return
      */
     private int handleJoin(int childPid, int addrStatus) {
@@ -844,7 +848,7 @@ public class UserProcess {
 
         UserProcess childProcess = UserProcess.findProcessByID(childPid);
         if (childProcess == null) {
-            return -2;
+            return -1;
         }
 
         childProcess.thread.join();
@@ -854,17 +858,17 @@ public class UserProcess {
         //写入 主存的
         int transferSize = writeVirtualMemory(addrStatus, byteStatus);
         if (transferSize == 4) {
-            return 0;
+            return 1;
         }
         return -1;
     }
 
     /**
-     *
      * （1）首先关闭coff  将所有的打开文件关闭  将退出状态置入，
      * （2）如果该进程有父进程   看是否执行了join方法 如果执行了就将其唤醒  同时将此进程从子进程链表中删除
      * （3）调用unloadsections释放内存，调用kthread。finish结束线程
      * （4）如果是最后一个线程 则停机
+     *
      * @param exitStatus
      */
     private void handleExit(int exitStatus) {
@@ -886,9 +890,7 @@ public class UserProcess {
 
         if (this.pid == 0) {
             Kernel.kernel.terminate();
-        }
-
-        else {
+        } else {
             KThread.currentThread().finish();
         }
     }
@@ -935,11 +937,11 @@ public class UserProcess {
      * <tr><td>9</td><td><tt>int  unlink(char *name);</tt></td></tr>
      * </table>
      *
-     * @param    syscall    the syscall number.
-     * @param    a0    the first syscall argument.
-     * @param    a1    the second syscall argument.
-     * @param    a2    the third syscall argument.
-     * @param    a3    the fourth syscall argument.
+     * @param syscall the syscall number.
+     * @param a0      the first syscall argument.
+     * @param a1      the second syscall argument.
+     * @param a2      the third syscall argument.
+     * @param a3      the fourth syscall argument.
      * @return the value to be returned to the user.
      */
     //系统调用
@@ -947,6 +949,25 @@ public class UserProcess {
         switch (syscall) {
             case syscallHalt:
                 return handleHalt();
+            case syscallCreate:
+                return handleCreate(a0);
+            case syscallOpen:
+                return handleOpen(a0);
+            case syscallWrite:
+                return handleWrite(a0, a1, a2);
+            case syscallRead:
+                return handleRead(a0, a1, a2);
+            case syscallClose:
+                return handleClose(a0);
+            case syscallUnlink:
+                return handleUnlink(a0);
+            case syscallExit:
+                handleExit(a0);
+                return 0;
+            case syscallJoin:
+                return handleJoin(a0, a1);
+            case syscallExec:
+                return handleExec(a0, a1, a2);
 
 
             default:
@@ -962,7 +983,7 @@ public class UserProcess {
      * <i>cause</i> argument identifies which exception occurred; see the
      * <tt>Processor.exceptionZZZ</tt> constants.
      *
-     * @param    cause    the user exception that occurred.
+     * @param cause the user exception that occurred.
      */
     //处理用户异常。由<tt>userkernel.exceptionhandler（）调用。
     // <i>cause</i>参数标识发生的异常；请参阅<tt>processor.exceptionzzz</tt>常量。
@@ -991,6 +1012,8 @@ public class UserProcess {
     /**
      * The program being run by this process.
      */
+
+
     //此进程运行的程序
     protected Coff coff;
 
