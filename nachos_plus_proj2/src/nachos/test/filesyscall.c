@@ -14,8 +14,7 @@ int main(){
 
 printf("测试文件创建调用 create\n");
 flag = true;
-fd = creat("create.txt");
-close(fd);
+fd = creat("0.txt");
 if (fd == -1) flag = false;
 if (flag) printf("create文件成功\n\n");
 else printf("Test 0 failed\n\n");

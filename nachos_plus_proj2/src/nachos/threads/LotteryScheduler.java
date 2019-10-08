@@ -170,9 +170,10 @@ public class LotteryScheduler extends Scheduler {
 
             int tmp = 0;
             //生成彩票随机数
+            //寻找被随机到的  进程   调度时  计算彩票总数 然后生成随机数
             int lotteryValue = (new Random()).nextInt(sum) + 1;
 
-            //寻找被随机到的  进程
+          //在遍历一遍队列  累加每个进程的彩票数 当加到某个进程  彩票数正好大于随机数  那么 这个进程将被调度到
             for (ThreadState threadState : waitThreadsSet) {
                 tmp += threadState.effectivePriority;
                 if (tmp >= lotteryValue) {
@@ -246,6 +247,7 @@ public class LotteryScheduler extends Scheduler {
             return priority;
         }
 
+        //等待者  把自己的彩票 全部给  获得锁的进程
         public int getEffectivePriority() { //
             int temp = priority;
 

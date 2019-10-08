@@ -193,7 +193,7 @@ public final class Machine {
 		}
 		else if (arg.equals("-x")) {
 		    Lib.assertTrue(i < args.length, "switch without argument");
-		    //-x 设置shell名称？
+		    //-x 当前执行的用户程序
 		    shellProgramName = args[i++];
 		}
 		else if (arg.equals("-z")) {

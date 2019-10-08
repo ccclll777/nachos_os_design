@@ -12,9 +12,6 @@ import java.util.LinkedList;
 public class UserKernel extends ThreadedKernel {
 	//空页
 	private static LinkedList<Integer> freePages = new LinkedList<Integer>();
-
-	public static int newProcessID = 0;
-
 	public static Semaphore processIDSem;
 	public static Semaphore freePagesSem;
 

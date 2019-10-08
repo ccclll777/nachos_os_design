@@ -149,32 +149,10 @@ public class Alarm {
     }
 
 
-    public static void selfTest() {
+    public static void selfTest()
+    {
         AlarmTest.runTest();
 
-//        System.out.println( "   System.out.println( Machine.timer().getTime());");
-//       KThread kt = new KThread(new Runnable() {
-//           @Override
-//           public void run() {
-//               int i   = 0 ;
-//               while (i++<40)
-//               {
-//                   System.out.println( Machine.timer().getTime());
-//                   if(i == 20)
-//                   {
-//                       Alarm myAlarm = new Alarm();
-//                       long waittime = 1470;
-//                       System.out.println("call   waitutil("+waittime+")at"+Machine.timer().getTime());
-//                       myAlarm.waitUntil(waittime);
-//                       System.out.println("waker at" +Machine.timer().getTime());
-//
-//                   }
-//               }
-//           }
-//       });
-//
-//       kt.fork();
-
-    }
+        }
 
 }

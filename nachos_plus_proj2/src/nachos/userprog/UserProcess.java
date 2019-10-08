@@ -39,7 +39,7 @@ public class UserProcess {
 
 
     private static final int maxLength = 256;//最大长度
-    private static final int MaxFileDescriptor = 16;//进程最多拥有16的文件描述符
+    private static final int MaxFileDescriptor = 16;//每个用户进程最多拥有16的文件描述符
     private static final int stdin = 0;//标准输入为0
     private static final int stdout = 1;//标准输出为1
 
@@ -605,7 +605,7 @@ public class UserProcess {
     //若进程已打开相同的文件描述符 则不创建 返回该文件的文件描述符
 
     private int handleCreate(int filenameAddress) {
-        //使用readVirtualMemoryString方法进行读取    读取虚拟内存中的文件名（根据 初始地址和长度）
+        //使用readVirtualMemoryString方法进行读取    读取虚拟内存中的文件名（根据 初始地址和长度）  根据地址  计算 页号 页偏移   找到 虚拟页对应的物理页
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
             Lib.debug(dbgProcess, "没有找到文件名");
@@ -625,6 +625,7 @@ public class UserProcess {
             Lib.debug(dbgProcess, "已超出用户进程拥有文件描述符的最大数量");
             return -1;
         }
+        //维护  打开文件表
         FileDescriptors[index].setFileName(filename);
         FileDescriptors[index].setFile(returnValue);
         return index;
@@ -657,6 +658,7 @@ public class UserProcess {
             Lib.debug(dbgProcess, "没有找到文件名");
             return -1;
         }
+
         OpenFile returnValue = UserKernel.fileSystem.open(filename, false);
         if (returnValue == null) {
             Lib.debug(dbgProcess, "打开文件失败");
@@ -692,7 +694,7 @@ public class UserProcess {
         if (readSize <= 0)
             return 0;
 
-        //从内存中读出数据  写入 虚拟内存（主存？） 然后返回字节数
+        //从内存中读出数据  写入 虚拟内存（主存） 然后返回字节数
         int writeSize = writeVirtualMemory(virtualAddress, buffer, 0, readSize);
         return writeSize;
     }
@@ -822,7 +824,7 @@ public class UserProcess {
      * join 阻塞等待某子进程 执行完毕
      * <p>
      * 父进程和子进程 不共享任何内存  文件 以及其他状态
-     * 父进程只能对子进程进行join操作  如果 A执行B  B执行C  则A不能
+     * 父进程只能对子进程进行join操作  如果 A执行B  B执行C  则A不能join  c
      * <p>
      * （1）首先判断是否是子进程  不是则返回-1  是则继续
      * （2）将当前线程挂起在队列中
@@ -851,6 +853,7 @@ public class UserProcess {
             return -1;
         }
 
+        //子进程调用join  父进程挂起  等待子进程执行结束
         childProcess.thread.join();
         byte byteStatus[] = new byte[4];
         byteStatus = Lib.bytesFromInt(childProcess.exitStatus);
@@ -880,17 +883,21 @@ public class UserProcess {
                 handleClose(i);
         }
 
+        //将该子进程的 父进程号置为0
         for (Integer i : childProcesses) {
             UserProcess it = UserProcess.findProcessByID(i);
             it.ppid = 0;
         }
 
         this.exitStatus = exitStatus;
+        //释放资源
         this.unloadSections();
 
         if (this.pid == 0) {
+            //如果 没有进程执行 则停机
             Kernel.kernel.terminate();
         } else {
+            //如果有进程执行 则将当前进程finish掉 调度下一个进程
             KThread.currentThread().finish();
         }
     }
