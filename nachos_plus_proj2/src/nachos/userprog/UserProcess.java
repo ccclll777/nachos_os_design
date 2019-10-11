@@ -5,6 +5,7 @@ import nachos.threads.*;
 import nachos.userprog.*;
 
 import java.io.EOFException;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
@@ -31,17 +32,17 @@ public class UserProcess {
     /**
      * Allocate a new process.
      */
-    private int pid;//当前用户进程的id  作为进程的唯一标识
-    private int ppid;//当前子进程的父进程号
-    private static int processCount = 0;//所有的进程数量
+    protected int pid;//当前用户进程的id  作为进程的唯一标识
+    protected int ppid;//当前子进程的父进程号
+    protected static int processCount = 0;//所有的进程数量
     //用Hashtable来存放 所有的用户进程以及对应的编号  Hashtable的方法是Synchronize的 可以解决并发问题 （1）确保线程互斥的访问同步代码（2）保证共享变量的修改能够及时可见（3）有效解决重排序问题。
     private static Hashtable<Integer, UserProcess> userProcessHashtable = new Hashtable<Integer, UserProcess>();
 
 
-    private static final int maxLength = 256;//最大长度
-    private static final int MaxFileDescriptor = 16;//每个用户进程最多拥有16的文件描述符
-    private static final int stdin = 0;//标准输入为0
-    private static final int stdout = 1;//标准输出为1
+    protected static final int maxLength = 256;//最大长度
+    protected static final int MaxFileDescriptor = 16;//每个用户进程最多拥有16的文件描述符
+    protected static final int stdin = 0;//标准输入为0
+    protected static final int stdout = 1;//标准输出为1
 
     private FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
 
@@ -119,6 +120,12 @@ public class UserProcess {
      * Called by <tt>UThread.saveState()</tt>.
      */
     //保存此进程的状态以准备上下文切换。由<tt>uthread.saveState（）</tt>调用。
+
+    /**
+     *
+     *
+     *
+     */
     public void saveState() {
     }
 
@@ -1046,4 +1053,6 @@ public class UserProcess {
 
     private static final int pageSize = Processor.pageSize;
     private static final char dbgProcess = 'a';
+
+
 }
