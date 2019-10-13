@@ -38,7 +38,6 @@ public class UserKernel extends ThreadedKernel {
 		processIDSem = new Semaphore(1);
 		freePagesSem = new Semaphore(1);
 
-
 		int numPhysPages = Machine.processor().getNumPhysPages();
 		//初始化物理页  物理内存
 		for (int i = 0; i < numPhysPages; ++i) {
@@ -55,7 +54,7 @@ public class UserKernel extends ThreadedKernel {
 		int pageNumber = -1;
 		boolean interruptStatus = Machine.interrupt().disable();
 		freePagesSem.P();
-		if (freePages.isEmpty() == false) {
+		if (!freePages.isEmpty()) {
 			pageNumber = freePages.removeFirst();
 		}
 		freePagesSem.V();
@@ -77,7 +76,7 @@ public class UserKernel extends ThreadedKernel {
      */
     public void selfTest() {
 	super.selfTest();
-		System.out.println("测试调度程序");
+
 	System.out.println("Testing the console device. Typed characters");
 	System.out.println("will be echoed until q is typed.");
 

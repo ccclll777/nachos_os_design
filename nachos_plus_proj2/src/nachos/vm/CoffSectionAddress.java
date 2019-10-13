@@ -24,8 +24,5 @@ public class CoffSectionAddress {
     public void setPageOffset(int pageOffset) {
         this.pageOffset = pageOffset;
     }
-    public boolean equals(CoffSectionAddress that){
-        if(that==null)return false;
-        return this.sectionNumber==that.sectionNumber&&this.pageOffset==that.pageOffset;
-    }
+
 }

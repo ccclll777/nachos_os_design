@@ -26,7 +26,7 @@ import java.util.LinkedList;
  * 操作系统必须判断是将数据页写到磁盘上还是将它们保留在内存中以便下次访问。
  */
 //将物理页中  不需要的置换到 磁盘上  将需要的 置换到内存中  物理内存一共16页
-public class Swapper {
+public class SwapperController {
 
     private int pageSize;
 
@@ -37,30 +37,36 @@ public class Swapper {
     private String swapFileName;
 
 
-    private HashMap<PidAndVpn,Integer> swapTable;
+    private HashMap<VirtualPageFlag,Integer> swapTable;
 
-    private HashSet<PidAndVpn> unallocated;//未分配列表
+    private HashSet<VirtualPageFlag> unallocated;//未分配列表
 
     private LinkedList<Integer> availableLocations;//可用位置
 
-    private static Swapper instance=null;
+    private static SwapperController instance=null;
 
     protected final static char dbgVM='v';
-    private Swapper(String swapFileName){
+    private SwapperController(String swapFileName){
         pageSize=Machine.processor().pageSize;
         this.swapFileName=swapFileName;
-        swapTable=new HashMap<PidAndVpn,Integer>();
-        unallocated=new HashSet<PidAndVpn>();
+        swapTable=new HashMap<VirtualPageFlag,Integer>();
+        unallocated=new HashSet<VirtualPageFlag>();
         availableLocations=new LinkedList<Integer>();
         swapFile=ThreadedKernel.fileSystem.open(swapFileName, true);
         if(swapFile==null){
             Lib.debug(dbgVM, "无法打开此文件");
         }
     }
+    public void deletePosition(int pid,int vpn){
+        VirtualPageFlag key=new VirtualPageFlag(pid,vpn);
+        if(!swapTable.containsKey(key))return;
+        int availableLocation=swapTable.remove(key);
+        availableLocations.add(availableLocation);
+    }
 
-    public static Swapper getInstance(String swapFileName){
+    public static SwapperController getInstance(String swapFileName){
         if(instance==null){
-            instance=new Swapper(swapFileName);
+            instance=new SwapperController(swapFileName);
         }
         return instance;
     }
@@ -93,23 +99,27 @@ public class Swapper {
         return position;
     }
 
+    public void insertUnallocatedPage(int pid,int vpn){
+        VirtualPageFlag key=new VirtualPageFlag(pid,vpn);
+        unallocated.add(key);
+    }
 
     //在swapTable中为进程分配位置
     public int allocatePosition(int pid,int vpn){
-        PidAndVpn pidAndVpn=new PidAndVpn(pid,vpn);
-        if(unallocated.contains(pidAndVpn)){
-            unallocated.remove(pidAndVpn);
+        VirtualPageFlag virtualPageFlag =new VirtualPageFlag(pid,vpn);
+        if(unallocated.contains(virtualPageFlag)){
+            unallocated.remove(virtualPageFlag);
             if(availableLocations.isEmpty()){
                 availableLocations.add(swapTable.size());
             }
             //分配位置
             int index=availableLocations.removeFirst();
-            swapTable.put(pidAndVpn, index);
+            swapTable.put(virtualPageFlag, index);
             return index;
         }else{
             //位置已经分配 直接返回
             int index=-1;
-            index=swapTable.get(pidAndVpn);
+            index=swapTable.get(virtualPageFlag);
             if(index==-1){
                 Lib.debug(dbgVM, "未分配列表与已交换列表有关此虚拟页的信息不同");
             }
@@ -120,7 +130,7 @@ public class Swapper {
 
     //获取进程虚拟页的 位置
     private int findEntry(int pid, int vpn) {
-        Integer position = swapTable.get(new PidAndVpn(pid, vpn));
+        Integer position = swapTable.get(new VirtualPageFlag(pid, vpn));
         if (position == null)
             return -1;
         else

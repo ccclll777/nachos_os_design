@@ -10,7 +10,7 @@ import java.util.HashMap;
 //全局的反向页表  保存在真正内存位置的页的虚拟地址以及拥有该页的进程的信息
 public class InvertedPageTable {
 
-    private HashMap<PidAndVpn,TranslationEntry> table;
+    private HashMap<VirtualPageFlag,TranslationEntry> table;
 
     //全局的一个 页表  存放所有的物理页（对应 进程）
     private TranslationEntryWithPid[] globalTable;
@@ -21,7 +21,7 @@ public class InvertedPageTable {
     protected static final char dbgVM='v';
 
     private InvertedPageTable(){
-        table=new HashMap<PidAndVpn,TranslationEntry>();
+        table=new HashMap<VirtualPageFlag,TranslationEntry>();
         globalTable=new TranslationEntryWithPid[Machine.processor().getNumPhysPages()];
     }
 
@@ -35,14 +35,14 @@ public class InvertedPageTable {
     //向反向页表中插入一页
     public boolean insertEntry(int pid,TranslationEntry entry)
     {
-        PidAndVpn pidAndVpn = new PidAndVpn(pid,entry.vpn);
-        if(table.containsKey(pidAndVpn)){
+        VirtualPageFlag virtualPageFlag = new VirtualPageFlag(pid,entry.vpn);
+        if(table.containsKey(virtualPageFlag)){
             Lib.debug(dbgVM, "\t反向页表中已经存在此页");
             return false;
         }
         Lib.debug(dbgVM, "\t插入反向页表:进程 "+pid+"   虚拟页为 "+entry.vpn+
                 "    物理页为 "+entry.ppn+"以插入反向页表 ");
-        table.put(pidAndVpn,entry);
+        table.put(virtualPageFlag,entry);
 
         //如果则虚拟页在内存中，而tlb可以直接由处理器使用。
         if(entry.valid){
@@ -56,8 +56,8 @@ public class InvertedPageTable {
     //将某进程的某虚拟页 从反向页表中删除
     public TranslationEntry deleteEntry(int pid,int vpn)
     {
-        PidAndVpn pidAndVpn = new PidAndVpn(pid,vpn);
-        TranslationEntry entry=table.get(pidAndVpn);
+        VirtualPageFlag virtualPageFlag = new VirtualPageFlag(pid,vpn);
+        TranslationEntry entry=table.get(virtualPageFlag);
         if(entry == null)
         {
             Lib.debug(dbgVM, "\t此进程的此虚拟页不在反向页表中");
@@ -74,15 +74,15 @@ public class InvertedPageTable {
     //设置某进程的某一个TranslationEntry
     public void setEntry(int pid,TranslationEntry newEntry)
     {
-        PidAndVpn pidAndVpn=new PidAndVpn(pid,newEntry.vpn);
+        VirtualPageFlag virtualPageFlag =new VirtualPageFlag(pid,newEntry.vpn);
         //如果此TranslationEntry本身就不在反向页表中
-        if(!table.containsKey(pidAndVpn)){
+        if(!table.containsKey(virtualPageFlag)){
             Lib.debug(dbgVM, "\t此TranslationEntry不在反向页表中");
             return;
         }
 
         //从反向页表中取出旧TranslationEntry
-        TranslationEntry oldEntry=table.get(pidAndVpn);
+        TranslationEntry oldEntry=table.get(virtualPageFlag);
         if(oldEntry.valid){
             if(globalTable[oldEntry.ppn]==null){
                 Lib.debug(dbgVM, "\t内存中不存在此虚拟页对应的物理页");
@@ -99,10 +99,10 @@ public class InvertedPageTable {
             globalTable[newEntry.ppn]=new TranslationEntryWithPid(newEntry,pid);
             Lib.debug(dbgVM, "\t内存中此虚拟页对应的物理页已设置["+newEntry.ppn+"]");
         }
-        table.put(pidAndVpn, newEntry);
+        table.put(virtualPageFlag, newEntry);
     }
     public void updateEntry(int pID,TranslationEntry entry){
-        PidAndVpn key=new PidAndVpn(pID,entry.vpn);
+        VirtualPageFlag key=new VirtualPageFlag(pID,entry.vpn);
         if(table.containsKey(key)){
             Lib.debug(dbgVM, "\t此TranslationEntry已经存在在反向页表中");
             return;
@@ -142,12 +142,12 @@ public class InvertedPageTable {
     //获取 某进程 某虚拟页下对应的TranslationEntry
     public TranslationEntry getEntry(int pid,int vpn)
     {
-        PidAndVpn pidAndVpn=new PidAndVpn(pid,vpn);
+        VirtualPageFlag virtualPageFlag =new VirtualPageFlag(pid,vpn);
         TranslationEntry entry=null;
         Lib.debug(dbgVM, "\t进程 "+pid+" 使用虚拟页 "+vpn+
                 " 从反向页表中获取到对应的TranslationEntry  ");
-        if(table.containsKey(pidAndVpn)){
-            entry=table.get(pidAndVpn);
+        if(table.containsKey(virtualPageFlag)){
+            entry=table.get(virtualPageFlag);
         }
         return entry;
     }
