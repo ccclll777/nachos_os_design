@@ -112,7 +112,7 @@ public class VMProcess extends UserProcess {
         section.loadPage(coffSectionAddress.getPageOffset(), ppn);
 
     }
-    //将某一页从  反向页表中置换出来  这时需要 写入交换文件
+    //将某一页从  TLB中置换出来  这时需要 写入交换文件
 
     protected void swapOut(int pid, int vpn) {
         TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
@@ -183,7 +183,7 @@ public class VMProcess extends UserProcess {
             used = false;
         }
         TranslationEntry newEntry = new TranslationEntry(vpn, ppn, true, false, used, dirty);
-        //将此页转入反向页表
+        //更改反向页表中此页的状态
         InvertedPageTable.getInstance().setEntry(pid, newEntry);
     }
     /**
@@ -222,7 +222,6 @@ public class VMProcess extends UserProcess {
             if (tlbBackUp[i].valid) {
                 //还原TLB信息
                 Machine.processor().writeTLBEntry(i, tlbBackUp[i]);
-                //可以被其他进程替换
                 TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, tlbBackUp[i].vpn);
                 if (entry != null && entry.valid) {
                     Machine.processor().writeTLBEntry(i, entry);
@@ -230,6 +229,7 @@ public class VMProcess extends UserProcess {
                     Machine.processor().writeTLBEntry(i, new TranslationEntry(0, 0, false, false, false, false));
                 }
             } else {
+
                 Machine.processor().writeTLBEntry(i, new TranslationEntry(0, 0, false, false, false, false));
             }
         }
@@ -312,7 +312,7 @@ public class VMProcess extends UserProcess {
             Lib.debug(dbgVM, "\t没有在反向页表中找到对应的页");
             return false;
         }
-        //如果  页不在内存中  需要取一个物理页  （将页装入内存中） 然后转入elb
+        //如果对应的页不在内存中（valid为false） 需要取一个物理页 分配物理页 （将页装入内存中） 然后装入tlb
         if (!entry.valid) {
             Lib.debug(dbgVM, "\t页错误");
             int ppn = getFreePage();
@@ -349,7 +349,7 @@ public class VMProcess extends UserProcess {
         //否则随机置换一个
         return Lib.random(Machine.processor().getTLBSize());
     }
-    //给进程分配物理页
+    //给进程分配物理页 由于使用懒加载 所以 先设置页表条目  但不分配物理页
     protected boolean allocate(int vpn, int acquirePagesNum, boolean readOnly) {
 
         for (int i = 0; i < acquirePagesNum; ++i) {
@@ -358,7 +358,7 @@ public class VMProcess extends UserProcess {
             allocatedPages.add(vpn + i);
         }
 
-        numPages += acquirePagesNum;
+        numPages += acquirePagesNum ;
 
         return true;
     }

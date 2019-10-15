@@ -11,7 +11,7 @@ import java.util.LinkedList;
 //多道程序设计的内核。
 public class UserKernel extends ThreadedKernel {
 	//空页
-	private static LinkedList<Integer> freePages = new LinkedList<Integer>();
+	public static LinkedList<Integer> freePages = new LinkedList<Integer>();
 	public static Semaphore processIDSem;
 	public static Semaphore freePagesSem;
 

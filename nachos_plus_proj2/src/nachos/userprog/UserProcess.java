@@ -520,7 +520,7 @@ public class UserProcess {
         // program counter initially points at the program entry point
         initialPC = coff.getEntryPoint();
 
-        // 接下来是堆栈；堆栈指针最初指向它的顶部
+        // 分配堆栈页；堆栈指针最初指向它的顶部
         if (!allocate(numPages, stackPages, false)) {
             releaseResource();
             return false;
@@ -613,10 +613,18 @@ public class UserProcess {
     protected void unloadSections() {
         coff.close();
 
+
         for (int i = 0; i < numPages; ++i) {
             //释放之前分配的页表
-            UserKernel.addFreePage(pageTable[i].ppn);
-            pageTable[i] = null;
+            if(numPages >= Machine.processor().getNumPhysPages())
+            {
+                UserKernel.addFreePage(pageTable[i].ppn);
+
+                pageTable[i] = null;
+                break;
+            }
+
+
         }
 
         //将页表置为空
