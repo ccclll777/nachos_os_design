@@ -30,11 +30,20 @@ public class VMKernel extends UserKernel {
 	super.selfTest();
     }
 
+
+
+
     /**
      * Start running user programs.
      */
     public void run() {
-	super.run();
+        super.run();
+//        UserProcess process = UserProcess.newUserProcess();
+//
+//        String shellProgram = Machine.getShellProgramName();
+//        Lib.assertTrue(process.execute(shellProgram, new String[] { }));
+//
+//        KThread.currentThread().finish();
     }
     
     /**

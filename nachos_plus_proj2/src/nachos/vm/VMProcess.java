@@ -4,6 +4,7 @@ import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
 
+import java.io.EOFException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -16,15 +17,13 @@ public class VMProcess extends UserProcess {
      */
     public VMProcess() {
         super();
-        allocatedPages=new LinkedList<Integer>();
+        allocatedPages = new LinkedList<Integer>();
         lazyLoadPages = new HashMap<Integer, CoffSectionAddress>();
         tlbBackUp = new TranslationEntry[Machine.processor().getTLBSize()];
         for (int i = 0; i < tlbBackUp.length; i++) {
             tlbBackUp[i] = new TranslationEntry(0, 0, false, false, false, false);
         }
     }
-
-
 
     protected int getFreePage() {
         //获取一个物理页
@@ -70,7 +69,7 @@ public class VMProcess extends UserProcess {
         int vpn = Processor.pageFromAddress(vaddr);
         //由于进程只能看到TLB 所以需要将需要的页换入
         swap(vpn);
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid , vpn);
+        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
         if (entry == null) {
             Lib.debug(dbgVM, "\t没有找到对应的页");
         }
@@ -95,8 +94,9 @@ public class VMProcess extends UserProcess {
         swapIn(ppn, vpn);
         return ppn;
     }
+
     protected TranslationEntry AllocatePageTable(int vpn) {
-        return InvertedPageTable.getInstance().getEntry(pid ,vpn);
+        return InvertedPageTable.getInstance().getEntry(pid, vpn);
     }
 
 
@@ -112,7 +112,6 @@ public class VMProcess extends UserProcess {
         section.loadPage(coffSectionAddress.getPageOffset(), ppn);
 
     }
-    //将某一页从  TLB中置换出来  这时需要 写入交换文件
 
     protected void swapOut(int pid, int vpn) {
         TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
@@ -132,29 +131,39 @@ public class VMProcess extends UserProcess {
 
             TranslationEntry tlbEntry = Machine.processor().readTLBEntry(i);
             //遍历tbl  置换出对应的页
+
             if (tlbEntry.vpn == entry.vpn && tlbEntry.ppn == entry.ppn && tlbEntry.valid) {
                 //将反向页表中旧的页换掉
                 InvertedPageTable.getInstance().updateEntry(pid, tlbEntry);
+                tlbEntry.valid = false;//表示 不在内存中
                 //读取反向页表中对应的新页
                 entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
-                tlbEntry.valid = false;//表示 不在内存中
+
                 //写入tlb
                 Machine.processor().writeTLBEntry(i, tlbEntry);
                 break;
             }
         }
-        if (entry.dirty) {
-            byte[] memory = Machine.processor().getMemory();
-            SwapperController.getInstance(getSwapFileName()).writeToSwapFile(pid, vpn, memory, entry.ppn * pageSize);
-        }
+//        if (entry.dirty) {
+        byte[] memory = Machine.processor().getMemory();
+        SwapperController.getInstance(getSwapFileName()).writeToSwapFile(pid, vpn, memory, entry.ppn * pageSize);
+//        }
     }
 
     protected String getSwapFileName() {
-        return "Swap";
+        return "Proj3SwapTestFile";
     }
 
     //取得一个物理页 然后将 发生页错误的虚拟页 装到对应的物理页中
     protected void swapIn(int ppn, int vpn) {
+        try
+        {
+            swapOut(ppn,vpn);//if only if it's already in the memory
+        }
+        catch (IllegalArgumentException e)
+        {
+                System.out.println("IllegalArgumentException");
+        }
         TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
         if (entry == null) {
             Lib.debug(dbgVM, "\t反向页表中没有对应的页");
@@ -174,10 +183,12 @@ public class VMProcess extends UserProcess {
             lazyLoad(vpn, ppn);
             dirty = true;
             used = true;
+
         } else {
             //如果不是首次加载此coff  则将此物理页 从交换文件 复制到主存中
             byte[] memory = Machine.processor().getMemory();
             byte[] page = SwapperController.getInstance(getSwapFileName()).readFromSwapFile(pid, vpn);
+            //src：源数组 srcPos：源数组要复制的起始位置 dest：目标数组  destPos：目标数组复制的起始位置 length：复制的长度
             System.arraycopy(page, 0, memory, ppn * pageSize, pageSize);
             dirty = false;
             used = false;
@@ -239,7 +250,7 @@ public class VMProcess extends UserProcess {
      * Initializes page tables for this process so that the executable can be
      * demand-paged.
      *
-     * @return    <tt>true</tt> if successful.
+     * @return <tt>true</tt> if successful.
      */
     protected boolean loadSections() {
 
@@ -274,7 +285,7 @@ public class VMProcess extends UserProcess {
      * <i>cause</i> argument identifies which exception occurred; see the
      * <tt>Processor.exceptionZZZ</tt> constants.
      *
-     * @param    cause    the user exception that occurred.
+     * @param cause the user exception that occurred.
      */
     public void handleException(int cause) {
         Processor processor = Machine.processor();
@@ -282,8 +293,8 @@ public class VMProcess extends UserProcess {
         switch (cause) {
             case Processor.exceptionTLBMiss:
                 //导致TLB缺失的虚拟地址是通过调用processor.readRegister(processor.regBadVAddr);获得的
-                int address = processor.readRegister(processor.regBadVAddr);
-                int vpn = Machine.processor().pageFromAddress(address);
+                int address = processor.readRegister(Processor.regBadVAddr);
+                int vpn = Processor.pageFromAddress(address);
                 Lib.debug(dbgVM, "\tTLB失效，地址为 " + address + " 虚拟页号为 " + vpn);
                 pageLock.acquire();
                 //处理TLB缺页
@@ -349,6 +360,7 @@ public class VMProcess extends UserProcess {
         //否则随机置换一个
         return Lib.random(Machine.processor().getTLBSize());
     }
+
     //给进程分配物理页 由于使用懒加载 所以 先设置页表条目  但不分配物理页
     protected boolean allocate(int vpn, int acquirePagesNum, boolean readOnly) {
 
@@ -358,12 +370,13 @@ public class VMProcess extends UserProcess {
             allocatedPages.add(vpn + i);
         }
 
-        numPages += acquirePagesNum ;
+        numPages += acquirePagesNum;
 
         return true;
     }
+
     protected void releaseResource() {
-        for (int vpn: allocatedPages) {
+        for (int vpn : allocatedPages) {
             pageLock.acquire();
 
             TranslationEntry entry = InvertedPageTable.getInstance().deleteEntry(pid, vpn);
@@ -375,10 +388,93 @@ public class VMProcess extends UserProcess {
             pageLock.release();
         }
     }
+    protected boolean load(String name, String[] args) {
+        Lib.debug(dbgProcess, "UserProcess.load(\"" + name + "\")");
 
+        OpenFile executable = ThreadedKernel.fileSystem.open(name, false);
+        if (executable == null) {
+            Lib.debug(dbgProcess, "\topen failed");
+            return false;
+        }
+
+        try {
+            coff = new Coff(executable);
+        } catch (EOFException e) {
+            executable.close();
+            Lib.debug(dbgProcess, "\tcoff load failed");
+            return false;
+        }
+
+        // make sure the sections are contiguous and start at page 0
+        numPages = 0;
+        for (int s = 0; s < coff.getNumSections(); s++) {
+            CoffSection section = coff.getSection(s);
+            if (section.getFirstVPN() != numPages) {
+                coff.close();
+                Lib.debug(dbgProcess, "\tfragmented executable");
+                return false;
+            }
+            //如果 所有的物理页都被分配 则 释放在主存的的那些页
+            if (!allocate(numPages, section.getLength(), section.isReadOnly())) {
+                releaseResource();
+                return false;
+            }
+        }
+
+        // make sure the argv array will fit in one page
+        byte[][] argv = new byte[args.length][];
+        int argsSize = 0;
+        for (int i = 0; i < args.length; i++) {
+            argv[i] = args[i].getBytes();
+            // 4 bytes for argv[] pointer; then string plus one for null byte
+            argsSize += 4 + argv[i].length + 1;
+        }
+        if (argsSize > pageSize) {
+            coff.close();
+            Lib.debug(dbgProcess, "\targuments too long");
+            return false;
+        }
+
+        // program counter initially points at the program entry point
+        initialPC = coff.getEntryPoint();
+
+        // 分配堆栈页；堆栈指针最初指向它的顶部
+        if (!allocate(numPages, stackPages, false)) {
+            releaseResource();
+            return false;
+        }
+        initialSP = numPages * pageSize;
+
+        // 最后保留1页作为参数
+        if (!allocate(numPages, 1, false)) {
+            releaseResource();
+            return false;
+        }
+
+        if (!loadSections())
+            return false;
+
+        // store arguments in last page
+        int entryOffset = (numPages - 1) * pageSize;
+        int stringOffset = entryOffset + args.length * 4;
+
+        this.argc = args.length;
+        this.argv = entryOffset;
+
+        for (int i = 0; i < argv.length; i++) {
+            byte[] stringOffsetBytes = Lib.bytesFromInt(stringOffset);
+            Lib.assertTrue(writeVirtualMemory(entryOffset, stringOffsetBytes) == 4);
+            entryOffset += 4;
+            Lib.assertTrue(writeVirtualMemory(stringOffset, argv[i]) == argv[i].length);
+            stringOffset += argv[i].length;
+            Lib.assertTrue(writeVirtualMemory(stringOffset, new byte[] { 0 }) == 1);
+            stringOffset += 1;
+        }
+
+        return true;
+    }
 
     private static final int pageSize = Processor.pageSize;
-    private static final char dbgProcess = 'a';
     private static final char dbgVM = 'v';
 
 

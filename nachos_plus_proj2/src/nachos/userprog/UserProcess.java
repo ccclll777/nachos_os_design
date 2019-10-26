@@ -92,37 +92,7 @@ public class UserProcess {
     }
 
 
-    //分配页表资源
-    protected boolean allocate(int vpn, int acquirePagesNum, boolean readOnly) {
-        LinkedList<TranslationEntry> allocated = new LinkedList<TranslationEntry>();
 
-        for (int i = 0; i < acquirePagesNum; ++i) {
-            if (vpn >= pageTable.length)
-                return false;
-
-            int ppn = UserKernel.getFreePage();
-            if (ppn == -1) {
-                Lib.debug(dbgProcess, "\t没有物理页可以分配");
-
-                //如果没有物理页进行分配 则从已分配的页中 释放资源
-                for (TranslationEntry translationEntry: allocated) {
-                    pageTable[translationEntry.vpn] = new TranslationEntry(translationEntry.vpn, 0, false, false, false, false);
-                    UserKernel.addFreePage(translationEntry.ppn);
-                    numPages--;
-                }
-
-                return false;
-            } else {
-                //否则直接分配资源
-                TranslationEntry a = new TranslationEntry(vpn + i,
-                        ppn, true, readOnly, false,false);
-                allocated.add(a);
-                pageTable[vpn + i] = a;
-                ++numPages;
-            }
-        }
-        return true;
-    }
 
     //如果 所有的物理页都被分配 则 释放在主存的的那些页
     protected void releaseResource() {
@@ -271,10 +241,24 @@ public class UserProcess {
 //            return -1;
 //        }
 //
-//        TranslationEntry entry = pageTable[virtualPageNum];
+////        TranslationEntry entry = pageTable[virtualPageNum];
+////
+////        if (entry == null)
+////            return 0;
+////        if (entry.valid == false)
+////            return -1;
+////
+////        entry.used = true;
 //
-//        if (entry == null)
-//            return 0;
+////        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
+////            return 0;
+////        }
+////
+////        //物理地址 为  物理页号*页表大小 +页偏移
+////        int paddr = entry.ppn * pageSize + addrOffset;
+//        TranslationEntry entry =  AllocatePageTable(virtualPageNum);
+//                if (entry == null)
+//                    return 0;
 //        if (entry.valid == false)
 //            return -1;
 //
@@ -286,7 +270,6 @@ public class UserProcess {
 //
 //        //物理地址 为  物理页号*页表大小 +页偏移
 //        int paddr = entry.ppn * pageSize + addrOffset;
-//
 //        int amount = Math.min(length, memory.length - paddr);
 //        System.arraycopy(memory, paddr, data, offset, amount);
 
@@ -312,20 +295,19 @@ public class UserProcess {
 
             int bytesToRead = Math.min(bytesLeftInPage, length - amount);
 
-
-            //从
-            if (AllocatePageTable(virtualPageNum) == null)
+            TranslationEntry entry = AllocatePageTable(virtualPageNum);
+            if (entry == null)
                 return 0;
-            if (AllocatePageTable(virtualPageNum).valid == false)
+            if (!entry.valid)
                 return -1;
 
-            AllocatePageTable(virtualPageNum).used = true;
+            entry.used = true;
 
-            if (AllocatePageTable(virtualPageNum).ppn < 0 || AllocatePageTable(virtualPageNum).ppn >= Machine.processor().getNumPhysPages()) {
+            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
                 return 0;
             }
 
-            int physicalAddr = Processor.makeAddress(AllocatePageTable(virtualPageNum).ppn, addrOffset);
+            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
             System.arraycopy(memory, physicalAddr, data, offset + amount, bytesToRead);
             amount += bytesToRead;
 
@@ -387,7 +369,7 @@ public class UserProcess {
          *
          * 一种实现
          */
-//        //从地址中提取 虚拟页的页码
+        //从地址中提取 虚拟页的页码
 //        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
 //
 //        //从地址中提取偏移分量。
@@ -397,7 +379,7 @@ public class UserProcess {
 //        if (virtualPageNum >= numPages) {
 //            return -1;
 //        }
-//        TranslationEntry entry = pageTable[virtualPageNum];
+//        TranslationEntry entry = AllocatePageTable(virtualPageNum);
 //
 //        if (entry == null)
 //            return 0;
@@ -430,22 +412,22 @@ public class UserProcess {
             if (AllocatePageTable(virtualPageNum) == null)
                 return 0;
             //查看此页是否是只读的
-
+            TranslationEntry entry = AllocatePageTable(virtualPageNum);
             //从页表中选取对应的虚拟页
-            if (AllocatePageTable(virtualPageNum).valid == false || AllocatePageTable(virtualPageNum).readOnly)
+            if (!entry.valid || entry.readOnly)
                 return -1;
 
-            AllocatePageTable(virtualPageNum).used = true;
-            AllocatePageTable(virtualPageNum).dirty = true;
+            entry.used = true;
+            entry.dirty = true;
 
-            if (AllocatePageTable(virtualPageNum).ppn < 0 || AllocatePageTable(virtualPageNum).ppn >= Machine.processor().getNumPhysPages()) {
+            if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
                 return 0;
             }
 
             int bytesLeftInPage = pageSize - addrOffset;
             int bytesToWrite = Math.min(bytesLeftInPage, length - amount);
 
-            int physicalAddr = Processor.makeAddress(AllocatePageTable(virtualPageNum).ppn, addrOffset);
+            int physicalAddr = Processor.makeAddress(entry.ppn, addrOffset);
             System.arraycopy(data, offset + amount, memory, physicalAddr, bytesToWrite);
             amount += bytesToWrite;
         } while (amount < length);
@@ -496,11 +478,7 @@ public class UserProcess {
                 Lib.debug(dbgProcess, "\tfragmented executable");
                 return false;
             }
-            //如果 所有的物理页都被分配 则 释放在主存的的那些页
-            if (!allocate(numPages, section.getLength(), section.isReadOnly())) {
-                releaseResource();
-                return false;
-            }
+            numPages += section.getLength();
         }
 
         // make sure the argv array will fit in one page
@@ -520,18 +498,12 @@ public class UserProcess {
         // program counter initially points at the program entry point
         initialPC = coff.getEntryPoint();
 
-        // 分配堆栈页；堆栈指针最初指向它的顶部
-        if (!allocate(numPages, stackPages, false)) {
-            releaseResource();
-            return false;
-        }
+        // next comes the stack; stack pointer initially points to top of it
+        numPages += stackPages;
         initialSP = numPages * pageSize;
 
-        // 最后保留1页作为参数
-        if (!allocate(numPages, 1, false)) {
-            releaseResource();
-            return false;
-        }
+        // and finally reserve 1 page for arguments
+        numPages++;
 
         if (!loadSections())
             return false;
@@ -547,14 +519,16 @@ public class UserProcess {
             byte[] stringOffsetBytes = Lib.bytesFromInt(stringOffset);
             Lib.assertTrue(writeVirtualMemory(entryOffset, stringOffsetBytes) == 4);
             entryOffset += 4;
-            Lib.assertTrue(writeVirtualMemory(stringOffset, argv[i]) == argv[i].length);
+            Lib.assertTrue(writeVirtualMemory(stringOffset, argv[i]) ==
+                    argv[i].length);
             stringOffset += argv[i].length;
-            Lib.assertTrue(writeVirtualMemory(stringOffset, new byte[] { 0 }) == 1);
+            Lib.assertTrue(writeVirtualMemory(stringOffset, new byte[]{0}) == 1);
             stringOffset += 1;
         }
 
         return true;
     }
+
     /**
      * Allocates memory for this process, and loads the COFF sections into
      * memory. If this returns successfully, the process will definitely be
@@ -589,7 +563,7 @@ public class UserProcess {
             for (int i = 0; i < section.getLength(); i++) {
                 int virtualPageNum = section.getFirstVPN() + i;
 
-                TranslationEntry entry = pageTable[virtualPageNum];
+                TranslationEntry entry = AllocatePageTable(virtualPageNum);
                 //给页表中的一页赋值 是否只读
                 entry.readOnly = section.isReadOnly();
                 //对应的 物理页号
@@ -611,24 +585,8 @@ public class UserProcess {
      */
     //释放由<tt>loadSections（）</tt>分配的任何资源。
     protected void unloadSections() {
+        releaseResource();
         coff.close();
-
-
-        for (int i = 0; i < numPages; ++i) {
-            //释放之前分配的页表
-            if(numPages >= Machine.processor().getNumPhysPages())
-            {
-                UserKernel.addFreePage(pageTable[i].ppn);
-
-                pageTable[i] = null;
-                break;
-            }
-
-
-        }
-
-        //将页表置为空
-        pageTable = null;
     }
 
     /**
@@ -1106,11 +1064,11 @@ public class UserProcess {
     //程序堆栈中的页数
     protected final int stackPages = 8;
 
-    private int initialPC, initialSP;
-    private int argc, argv;
+    public int initialPC, initialSP;
+    public int argc, argv;
 
-    private static final int pageSize = Processor.pageSize;
-    private static final char dbgProcess = 'a';
+    public static final int pageSize = Processor.pageSize;
+    public static final char dbgProcess = 'a';
 
 
 }

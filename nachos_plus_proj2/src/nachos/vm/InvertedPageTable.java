@@ -106,10 +106,10 @@ public class InvertedPageTable {
     }
     public void updateEntry(int pID,TranslationEntry entry){
         VirtualPageFlag key=new VirtualPageFlag(pID,entry.vpn);
-//        if(GlobalInvertedPageTable.containsKey(key)){
-//            Lib.debug(dbgVM, "\t此TranslationEntry已经存在在反向页表中");
-//            return;
-//        }
+        if(GlobalInvertedPageTable.containsKey(key)){
+            Lib.debug(dbgVM, "\t此TranslationEntry已经存在在反向页表中");
+            return;
+        }
         TranslationEntry oldEntry=GlobalInvertedPageTable.get(key);
         TranslationEntry newEntry=mix(entry,oldEntry);
         if(oldEntry.valid){
@@ -159,7 +159,7 @@ public class InvertedPageTable {
     public TranslationEntryWithPid getVictimPage(){
         TranslationEntryWithPid entry=null;
         entry = PhysicalPageCopy[secondChanceReplacement.findSwappedPage()];
-
+//
 //        do{
 //            int index=Lib.random(PhysicalPageCopy.length);
 //            entry=PhysicalPageCopy[index];

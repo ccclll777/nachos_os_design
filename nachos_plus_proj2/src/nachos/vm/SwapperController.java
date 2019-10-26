@@ -4,10 +4,12 @@ package nachos.vm;
 import nachos.machine.Lib;
 import nachos.machine.Machine;
 import nachos.machine.OpenFile;
+import nachos.machine.Processor;
 import nachos.threads.ThreadedKernel;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -47,15 +49,19 @@ public class SwapperController {
 
     protected final static char dbgVM='v';
     private SwapperController(String swapFileName){
-        pageSize=Machine.processor().pageSize;
+        pageSize= Processor.pageSize;
         this.swapFileName=swapFileName;
         swapTable=new HashMap<VirtualPageFlag,Integer>();
         unallocated=new HashSet<VirtualPageFlag>();
         availableLocations=new LinkedList<Integer>();
         swapFile=ThreadedKernel.fileSystem.open(swapFileName, true);
+
         if(swapFile==null){
+            System.out.println("无法打开此文件");
             Lib.debug(dbgVM, "无法打开此文件");
         }
+        byte[] zeroBuffer = new byte[Processor.pageSize * Machine.processor().getNumPhysPages()];
+        swapFile.write(zeroBuffer, 0, zeroBuffer.length);
     }
     public void deletePosition(int pid,int vpn){
         VirtualPageFlag key=new VirtualPageFlag(pid,vpn);
@@ -95,7 +101,11 @@ public class SwapperController {
             return -1;
         }
         //写入交换文件
-        swapFile.write(position*pageSize, page, offset, pageSize);
+        int i = swapFile.write(position*pageSize, page, offset, pageSize);
+        if(i == -1 )
+        {
+            System.out.println("写入文件失败");
+        }
         return position;
     }
 
@@ -131,6 +141,15 @@ public class SwapperController {
     //获取进程虚拟页的 位置
     private int findEntry(int pid, int vpn) {
         Integer position = swapTable.get(new VirtualPageFlag(pid, vpn));
+//        Iterator iter = swapTable.keySet().iterator();
+//        while (iter.hasNext())
+//        {
+//            VirtualPageFlag virtualPageFlag = (VirtualPageFlag) iter.next();
+//            Integer i = swapTable.get(virtualPageFlag);
+//            System.out.println("pid:"+virtualPageFlag.getPid()+ "   vpn:"+virtualPageFlag.getVirtualPageNum() );
+//            System.out.println("index:" +i);
+//
+//        }
         if (position == null)
             return -1;
         else

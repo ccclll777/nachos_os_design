@@ -37,33 +37,28 @@ public  class SecondChanceReplacement {
         {
             replacePhysicalPage = UserKernel.freePages.removeFirst();
 
-            //used bit set to true will happen in Processor.translate()
             return replacePhysicalPage;
         }
         else
         {
-            /* evict page pointed to by current_frame and if only if its u-bit is false, replace with new page, and increment. */
-            while (InvertedPageTable.getInstance().PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used)//search for used-bit contain 0
+
+            while (InvertedPageTable.getInstance().PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used)
             {
-                //used bit set to true will happen in Processor.translate()
+
                 InvertedPageTable.getInstance().PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used = false;
 
-                currentPhysicalPage = ++currentPhysicalPage % Machine.processor().getNumPhysPages();//advance next frame
+                currentPhysicalPage = ++currentPhysicalPage % Machine.processor().getNumPhysPages();
             }
 
             replacePhysicalPage = currentPhysicalPage;
             currentPhysicalPage++;
             currentPhysicalPage %= Machine.processor().getNumPhysPages();
 
-            return replacePhysicalPage;
+                return replacePhysicalPage;
         }
     }
 
-    /*returns the number of faults. */
-    public int getNumberPageFault()
-    {
-        return numFaults;
-    }
+
 
 
 
