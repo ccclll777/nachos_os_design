@@ -2,6 +2,8 @@
 
 package nachos.machine;
 
+import java.text.DecimalFormat;
+
 /**
  * An object that maintains Nachos runtime statistics.
  */
@@ -26,7 +28,7 @@ public final class Stats {
 	System.out.println("Console I/O: reads " + numConsoleReads
 			   + ", writes " + numConsoleWrites);
 	System.out.println("Paging: page faults " + numPageFaults
-			   + ", TLB misses " + numTLBMisses);
+			   + ", TLB misses " + numTLBMisses+" TLB using " + numTLBUsing);
 	System.out.println("Network I/O: received " + numPacketsReceived
 			   + ", sent " + numPacketsSent);
     }
@@ -126,4 +128,6 @@ public final class Stats {
      */
     //电梯算法移动一次模拟时间。
     public static final int ElevatorTicks = 2000;
+
+    public static int numTLBUsing = 0;
 }

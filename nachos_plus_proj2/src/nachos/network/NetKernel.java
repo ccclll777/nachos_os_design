@@ -33,76 +33,83 @@ public class NetKernel extends VMKernel {
      * reliability is 1.0).
      */
     public void selfTest() {
-	super.selfTest();
 
-	KThread serverThread = new KThread(new Runnable() {
-		public void run() { pingServer(); }
-	    });
 
-	serverThread.fork();
+		Lib.enableDebugFlags("n");
+		KThread serverThread = new KThread(new Runnable() {
+			public void run() { pingServer(); }
+		});
 
-	System.out.println("Press any key to start the network test...");
-	console.readByte(true);
+		serverThread.fork();
 
-	int local = Machine.networkLink().getLinkAddress();
+		System.out.println("Press any key to start the network test...");
+		console.readByte(true);
 
-	// ping this machine first
-	ping(local);
+		int local = Machine.networkLink().getLinkAddress();
 
-	// if we're 0 or 1, ping the opposite
-	if (local <= 1)
-	    ping(1-local);
-    }
+		// ping this machine first
+		ping(local);
 
-    private void ping(int dstLink) {
-	int srcLink = Machine.networkLink().getLinkAddress();
-	
-	System.out.println("PING " + dstLink + " from " + srcLink);
-
-	long startTime = Machine.timer().getTime();
-	
-	MailMessage ping;
-
-	try {
-	    ping = new MailMessage(dstLink, 1,
-				   Machine.networkLink().getLinkAddress(), 0,
-				   new byte[0]);
-	}
-	catch (MalformedPacketException e) {
-	    Lib.assertNotReached();
-	    return;
+		// if we're 0 or 1, ping the opposite
+		if (local <= 1)
+			ping(1-local);
 	}
 
-	postOffice.send(ping);
+	private void ping(int dstLink) {
+		int srcLink = Machine.networkLink().getLinkAddress();
 
-	MailMessage ack = postOffice.receive(0);
-	
-	long endTime = Machine.timer().getTime();
+		System.out.println("PING " + dstLink + " from " + srcLink);
 
-	System.out.println("time=" + (endTime-startTime) + " ticks");	
-    }
+		long startTime = Machine.timer().getTime();
 
-    private void pingServer() {
-	while (true) {
-	    MailMessage ping = postOffice.receive(1);
+		//MailMessage ping;
+		UdpPacket ping;
 
-	    MailMessage ack;
+		byte[] barr = {'q'};
 
-	    try {
-		ack = new MailMessage(ping.packet.srcLink, ping.srcPort,
-				      ping.packet.dstLink, ping.dstPort,
-				      ping.contents);
-	    }
-	    catch (MalformedPacketException e) {
-		// should never happen...
-		continue;
-	    }
+		try {
+			ping = new UdpPacket(dstLink,0, Machine.networkLink().getLinkAddress(),
+					1,UdpPacket.DATA, 0,
+					barr);
+		}
+		catch (MalformedPacketException e) {
+			Lib.assertNotReached();
+			return;
+		}
 
-	    postOffice.send(ack);
-	}	
-    }
-    
-    /**
+		postOffice.send(ping);
+
+		//MailMessage ack = postOffice.receive(0);
+		UdpPacket ack = postOffice.receive(0);
+
+		System.out.println(ack);
+
+		long endTime = Machine.timer().getTime();
+
+		System.out.println("time=" + (endTime-startTime) + " ticks");
+	}
+
+	private void pingServer() {
+		while (true) {
+			//MailMessage ping = postOffice.receive(1);
+			UdpPacket ping = postOffice.receive(1);
+
+			UdpPacket ack;
+
+			try {
+
+				ack = new UdpPacket(ping.packet.dstLink, ping.destPort, ping.packet.srcLink, ping.srcPort, UdpPacket.DATA,0, ping.payload);
+			}
+			catch (MalformedPacketException e) {
+				// should never happen...
+				continue;
+			}
+
+			postOffice.send(ack);
+		}
+	}
+
+	/**
      * Start running user programs.
      */
     public void run() {
@@ -116,7 +123,7 @@ public class NetKernel extends VMKernel {
 	super.terminate();
     }
 
-    private PostOffice postOffice;
+	public static PostOffice postOffice;
 
     // dummy variables to make javac smarter
     private static NetProcess dummy1 = null;

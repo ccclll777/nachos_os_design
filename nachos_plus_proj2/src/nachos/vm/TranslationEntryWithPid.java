@@ -5,28 +5,28 @@ import nachos.machine.TranslationEntry;
 
 //pid与 TranslationEntry的对应
 public class TranslationEntryWithPid {
-	
-	private TranslationEntry translationEntry;
-	private int pid;
 
-	public TranslationEntryWithPid(TranslationEntry translationEntry, int pid) {
-		this.translationEntry = translationEntry;
-		this.pid = pid;
-	}
+    private TranslationEntry translationEntry;
+    private int pid;
 
-	public TranslationEntry getTranslationEntry() {
-		return translationEntry;
-	}
+    public TranslationEntryWithPid(TranslationEntry translationEntry, int pid) {
+        this.translationEntry = translationEntry;
+        this.pid = pid;
+    }
 
-	public void setTranslationEntry(TranslationEntry translationEntry) {
-		this.translationEntry = translationEntry;
-	}
+    public TranslationEntry getTranslationEntry() {
+        return translationEntry;
+    }
 
-	public int getPid() {
-		return pid;
-	}
+    public void setTranslationEntry(TranslationEntry translationEntry) {
+        this.translationEntry = translationEntry;
+    }
 
-	public void setPid(int pid) {
-		this.pid = pid;
-	}
+    public int getPid() {
+        return pid;
+    }
+
+    public void setPid(int pid) {
+        this.pid = pid;
+    }
 }

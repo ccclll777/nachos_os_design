@@ -8,45 +8,34 @@ import java.util.LinkedList;
 /**
  * 二次机会算法
  */
-public  class SecondChanceReplacement {
+public class SecondChanceReplacement {
 
 
     private int currentPhysicalPage;
 
-    private int numFaults;
 
     private int replacePhysicalPage;
 
 
-    public SecondChanceReplacement()
-    {
-        super();
+    public SecondChanceReplacement() {
         currentPhysicalPage = 0;
-        numFaults = 0;
-        //used_frames = 0;
         replacePhysicalPage = 0;
 
 
     }
 
-    public int findSwappedPage()
-    {
-        numFaults++;
+    public int findSwappedPage() {
 
-        if (!UserKernel.freePages.isEmpty())
-        {
+        if (!UserKernel.freePages.isEmpty()) {
             replacePhysicalPage = UserKernel.freePages.removeFirst();
 
             return replacePhysicalPage;
-        }
-        else
-        {
+        } else {
 
-            while (InvertedPageTable.getInstance().PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used)
-            {
+            while (InvertedPageTable.PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used) {
 
-                InvertedPageTable.getInstance().PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used = false;
-
+                InvertedPageTable.PhysicalPageCopy[currentPhysicalPage].getTranslationEntry().used = false;
+                InvertedPageTable.updateEntry( InvertedPageTable.PhysicalPageCopy[currentPhysicalPage].getPid(), InvertedPageTable.PhysicalPageCopy[currentPhysicalPage].getTranslationEntry());
                 currentPhysicalPage = ++currentPhysicalPage % Machine.processor().getNumPhysPages();
             }
 
@@ -54,12 +43,9 @@ public  class SecondChanceReplacement {
             currentPhysicalPage++;
             currentPhysicalPage %= Machine.processor().getNumPhysPages();
 
-                return replacePhysicalPage;
+            return replacePhysicalPage;
         }
     }
-
-
-
 
 
 }

@@ -137,7 +137,8 @@ public class ThreadedKernel extends Kernel {
 //	KThread.selfTest();
 //	Alarm.selfTest();
 //	Semaphore.selfTest();
-//	SynchList.selfTest();
+//        CommunicatorTest communicatorTest= new CommunicatorTest();
+//        communicatorTest.commTest(1);
 //        Condition2Test.runTest();
 //        Communicator.selfTest();
 //        PriorityScheduler.selfTest();

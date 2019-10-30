@@ -396,6 +396,7 @@ public class PriorityScheduler extends Scheduler {
         }
 
     }
+
     private static class PingTest implements Runnable {
         Lock a = null, b = null;
         int name;

@@ -90,9 +90,7 @@ public class Alarm {
 //        System.out.println("当前线程"+KThread.currentThread().getName()+"休眠"+x+"个tick，应该在"+wakeTime+"时唤醒");
         KThread.sleep();
         Machine.interrupt().restore(interruptStatus);
-
-
-    }
+     }
 
 //    PriorityQueue
 

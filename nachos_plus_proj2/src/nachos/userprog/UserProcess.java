@@ -40,7 +40,7 @@ public class UserProcess {
     protected static final int stdin = 0;//标准输入为0
     protected static final int stdout = 1;//标准输出为1
 
-    private FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
+    public FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
 
     private LinkedList<Integer> childProcesses = new LinkedList<Integer>();//存放子进程进程号的数组
 
@@ -59,10 +59,7 @@ public class UserProcess {
         pid = processCount++;
         UserKernel.processIDSem.V();
         Machine.interrupt().enable();
-
         userProcessHashtable.put(pid, this);
-
-
         //初始化 文件描述符数组
         for (int i = 0; i < MaxFileDescriptor; ++i) {
             FileDescriptors[i] = new FileDescriptor();
@@ -227,57 +224,6 @@ public class UserProcess {
 
         byte[] memory = Machine.processor().getMemory();
 
-        /**
-         * 一种实现
-         */
-        //从地址中提取 虚拟页的页码
-//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
-//
-//        //从地址中提取偏移分量。
-//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
-//
-//
-//        if (virtualPageNum >= numPages) {
-//            return -1;
-//        }
-//
-////        TranslationEntry entry = pageTable[virtualPageNum];
-////
-////        if (entry == null)
-////            return 0;
-////        if (entry.valid == false)
-////            return -1;
-////
-////        entry.used = true;
-//
-////        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-////            return 0;
-////        }
-////
-////        //物理地址 为  物理页号*页表大小 +页偏移
-////        int paddr = entry.ppn * pageSize + addrOffset;
-//        TranslationEntry entry =  AllocatePageTable(virtualPageNum);
-//                if (entry == null)
-//                    return 0;
-//        if (entry.valid == false)
-//            return -1;
-//
-//        entry.used = true;
-//
-//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-//            return 0;
-//        }
-//
-//        //物理地址 为  物理页号*页表大小 +页偏移
-//        int paddr = entry.ppn * pageSize + addrOffset;
-//        int amount = Math.min(length, memory.length - paddr);
-//        System.arraycopy(memory, paddr, data, offset, amount);
-
-
-        /**
-         * 另一种实现  可以防止跨页问题
-         */
-
         int amount = 0;
         do {
 
@@ -365,45 +311,6 @@ public class UserProcess {
         //返回用户程序的主存储器
         byte[] memory = Machine.processor().getMemory();
 
-        /**
-         *
-         * 一种实现
-         */
-        //从地址中提取 虚拟页的页码
-//        int virtualPageNum = Machine.processor().pageFromAddress(vaddr);
-//
-//        //从地址中提取偏移分量。
-//        int addrOffset = Machine.processor().offsetFromAddress(vaddr);
-//
-//
-//        if (virtualPageNum >= numPages) {
-//            return -1;
-//        }
-//        TranslationEntry entry = AllocatePageTable(virtualPageNum);
-//
-//        if (entry == null)
-//            return 0;
-//        //查看此页是否是只读的
-//
-//        if (entry.valid == false || entry.readOnly)
-//            return -1;
-//
-//        entry.used = true;
-//        entry.dirty = true;
-//
-//        if (entry.ppn < 0 || entry.ppn >= Machine.processor().getNumPhysPages()) {
-//            return 0;
-//        }
-//
-//        int physicalAddr = entry.ppn * pageSize + addrOffset;
-//        int amount = Math.min(length, memory.length - physicalAddr);
-//        System.arraycopy(data, offset, memory, vaddr, amount);
-
-
-        /**
-         *
-         * 另一种实现
-         */
         int amount = 0;
         do {
             int virtualPageNum = Processor.pageFromAddress(vaddr + amount);
@@ -571,9 +478,6 @@ public class UserProcess {
 
                 //将此段中的 第i页 加载到物理内存的第ppn页
                 section.loadPage(i, ppn);
-                // for now, just assume virtual addresses=physical addresses
-                //假设物理地址等于虚拟地址
-//                section.loadPage(i, vpn);
             }
         }
 
@@ -640,14 +544,12 @@ public class UserProcess {
             Lib.debug(dbgProcess, "没有找到文件名");
             return -1;
         }
-
         //使用文件系统 的open方法  第二个参数为true  表示 如果没有则创建一个新文件
         OpenFile returnValue = UserKernel.fileSystem.open(filename, true);
         if (returnValue == null) {
             Lib.debug(dbgProcess, "创建文件夹失败");
             return -1;
         }
-
         //查看是否已经打开16个文件 如果没有 返回标记
         int index = findEmptyFileDescriptor();
         if (index == -1) {
@@ -661,7 +563,7 @@ public class UserProcess {
     }
 
     //在数组中寻找一个空的文件描述符
-    private int findEmptyFileDescriptor() {
+    public int findEmptyFileDescriptor() {
         for (int i = 0; i < MaxFileDescriptor; i++) {
             if (FileDescriptors[i].getFile() == null) {
                 return i;
@@ -671,7 +573,7 @@ public class UserProcess {
     }
 
     //根据文件名 寻找文件是否已经被打开
-    private int findFileDescriptorByName(String filename) {
+    public int findFileDescriptorByName(String filename) {
         for (int i = 0; i < MaxFileDescriptor; ++i) {
             if (FileDescriptors[i].getFileName().equals(filename)) {
                 return i;

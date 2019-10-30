@@ -4,31 +4,14 @@ import nachos.machine.Machine;
 
 import java.util.Random;
 
-
-/**
- * A Tester for the Alarm class.
- * We can be sure that this tests the implementation because we create many
- * threads and we can see that they are woken up after the correct amount of
- * time has passed. Please note that it is impossible to wake up the thread at
- * exactly the correct time (since the interrupt handler only runs about every
- * 500 ticks, so instead threads are just woken up sometime after their time has
- * passed.
- */
 public class AlarmTest {
-    /**
-     * Wait thread class
-     */
+
     private static class AThread implements Runnable {
         AThread(String name, Random rng) {
             this.name = name;
             this.rng = rng;
         }
 
-        /** Method to generate a random number of ticks that
-         * needs to be spent waiting before attempting a 
-         * speak/listen actions. The number of ticks is
-         * generated to be between minDelay and maxDelay, inclusive
-         */
         private int randomDelay() {
             return minDelay+rng.nextInt(1+maxDelay - minDelay)-1; 
         }
@@ -46,10 +29,6 @@ public class AlarmTest {
         Random rng;
     }
 
-
-    /**
-     * Tests whether this module is working.
-     */
     public static void runTest() {
         System.out.println("**** Alarm testing begins ****");
 
@@ -70,8 +49,6 @@ public class AlarmTest {
     }
 
     private static final int numAThreads = 20;
-
-    /* Bounds on delay for sleep */
     private static final int minDelay = 2;
     private static final int maxDelay = 5000;
 }

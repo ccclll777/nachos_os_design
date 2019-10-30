@@ -363,12 +363,14 @@ public final class Processor {
 	}
 	// else, look through all TLB entries for matching vpn
 	else {
+
 	    for (int i=0; i<tlbSize; i++) {
 		if (translations[i].valid && translations[i].vpn == vpn) {
 		    entry = translations[i];
 		    break;
 		}
 	    }
+		privilege.stats.numTLBUsing++;
 	    if (entry == null) {
 		privilege.stats.numTLBMisses++;
 		Lib.debug(dbgProcessor, "\t\tTLB miss");

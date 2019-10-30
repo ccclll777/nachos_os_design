@@ -31,7 +31,7 @@ public class VMProcess extends UserProcess {
 
         if (ppn == -1) {
             //如果没有物理页了  需要选择一页牺牲掉
-            TranslationEntryWithPid victim = InvertedPageTable.getInstance().getVictimPage();
+            TranslationEntryWithPid victim = InvertedPageTable.getVictimPage();
             ppn = victim.getTranslationEntry().ppn;
             swapOut(victim.getPid(), victim.getTranslationEntry().vpn);
         }
@@ -45,10 +45,7 @@ public class VMProcess extends UserProcess {
 
         int vpn = Machine.processor().pageFromAddress(vaddr);
         //从反向页表读出对应的TranslationEntry
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
-        if (entry == null) {
-            Lib.debug(dbgVM, "\t没有找到对应的页");
-        }
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         if (!entry.valid) {
             //表示 此页还没有被加载到物理页中   需要重新分配物理页
             int ppn = getFreePage();
@@ -56,10 +53,9 @@ public class VMProcess extends UserProcess {
         }
         entry.used = true;
         //在反向页表中 更新对应的页
-        InvertedPageTable.getInstance().setEntry(pid, entry);
 
+        InvertedPageTable.setEntry(pid, entry);
         pageLock.release();
-
         return super.readVirtualMemory(vaddr, data, offset, length);
     }
 
@@ -69,16 +65,10 @@ public class VMProcess extends UserProcess {
         int vpn = Processor.pageFromAddress(vaddr);
         //由于进程只能看到TLB 所以需要将需要的页换入
         swap(vpn);
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
-        if (entry == null) {
-            Lib.debug(dbgVM, "\t没有找到对应的页");
-        }
-        if (!entry.valid) {
-            Lib.debug(dbgVM, "\t此页没有被载入物理页");
-        }
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         entry.dirty = true;
         entry.used = true;
-        InvertedPageTable.getInstance().setEntry(pid, entry);
+        InvertedPageTable.setEntry(pid, entry);
 
         pageLock.release();
 
@@ -86,8 +76,7 @@ public class VMProcess extends UserProcess {
     }
 
     protected int swap(int vpn) {
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
-
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         if (entry.valid)
             return entry.ppn;
         int ppn = getFreePage();
@@ -96,7 +85,7 @@ public class VMProcess extends UserProcess {
     }
 
     protected TranslationEntry AllocatePageTable(int vpn) {
-        return InvertedPageTable.getInstance().getEntry(pid, vpn);
+        return InvertedPageTable.getEntry(pid, vpn);
     }
 
 
@@ -104,98 +93,83 @@ public class VMProcess extends UserProcess {
 
         CoffSectionAddress coffSectionAddress = lazyLoadPages.remove(vpn);
         if (coffSectionAddress == null) {
-            Lib.debug(dbgVM, "\t没有找到此coffsection");
+
             return;
         }
-        Lib.debug(dbgVM, "\t将此逻辑页 " + vpn + " 对应到物理页 " + ppn);
+
         CoffSection section = coff.getSection(coffSectionAddress.getSectionNumber());
         section.loadPage(coffSectionAddress.getPageOffset(), ppn);
 
     }
 
     protected void swapOut(int pid, int vpn) {
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         if (entry == null) {
-            Lib.debug(dbgVM, "\t反向页表中 没有此进程的此虚拟页对应的TranslationEntry");
+
             return;
         }
         if (!entry.valid) {
-            Lib.debug(dbgVM, "\t此页不在物理内存中 ");
+
             return;
         }
-
-        Lib.debug(dbgVM, "\t进程  " + pid +
-                " 的虚拟页 " + vpn + " 在物理页的 " + entry.ppn);
-
         for (int i = 0; i < Machine.processor().getTLBSize(); i++) {
-
             TranslationEntry tlbEntry = Machine.processor().readTLBEntry(i);
             //遍历tbl  置换出对应的页
-
             if (tlbEntry.vpn == entry.vpn && tlbEntry.ppn == entry.ppn && tlbEntry.valid) {
                 //将反向页表中旧的页换掉
-                InvertedPageTable.getInstance().updateEntry(pid, tlbEntry);
+                InvertedPageTable.updateEntry(pid, tlbEntry);
                 tlbEntry.valid = false;//表示 不在内存中
                 //读取反向页表中对应的新页
-                entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
-
+                entry = InvertedPageTable.getEntry(pid, vpn);
                 //写入tlb
                 Machine.processor().writeTLBEntry(i, tlbEntry);
                 break;
             }
         }
-//        if (entry.dirty) {
+
         byte[] memory = Machine.processor().getMemory();
-        SwapperController.getInstance(getSwapFileName()).writeToSwapFile(pid, vpn, memory, entry.ppn * pageSize);
-//        }
+        int bufferOffset = Processor.makeAddress(entry.ppn, 0);
+        SwapperController.getInstance(SwapFileName).writeToSwapFile(pid, vpn, memory, bufferOffset);
+
     }
 
-    protected String getSwapFileName() {
-        return "Proj3SwapTestFile";
-    }
 
     //取得一个物理页 然后将 发生页错误的虚拟页 装到对应的物理页中
     protected void swapIn(int ppn, int vpn) {
-        try
-        {
-            swapOut(ppn,vpn);//if only if it's already in the memory
-        }
-        catch (IllegalArgumentException e)
-        {
-                System.out.println("IllegalArgumentException");
-        }
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, vpn);
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         if (entry == null) {
-            Lib.debug(dbgVM, "\t反向页表中没有对应的页");
+
             return;
         }
         if (entry.valid) {
-            Lib.debug(dbgVM, "\t此页已经装入物理内存");
+
             return;
         }
 
-        Lib.debug(dbgVM, "\t进程 " + pid +
-                "虚拟页 " + vpn + "被换入物理页 " + ppn);
 
         boolean dirty, used;
-        //如果是首次加载此 coff文件 需要设置dirty
         if (lazyLoadPages.containsKey(vpn)) {
             lazyLoad(vpn, ppn);
             dirty = true;
             used = true;
-
         } else {
             //如果不是首次加载此coff  则将此物理页 从交换文件 复制到主存中
             byte[] memory = Machine.processor().getMemory();
-            byte[] page = SwapperController.getInstance(getSwapFileName()).readFromSwapFile(pid, vpn);
+
+            byte[] page = SwapperController.getInstance(SwapFileName).readFromSwapFile(pid, vpn);
+
+
             //src：源数组 srcPos：源数组要复制的起始位置 dest：目标数组  destPos：目标数组复制的起始位置 length：复制的长度
             System.arraycopy(page, 0, memory, ppn * pageSize, pageSize);
+
             dirty = false;
             used = false;
+
+
         }
         TranslationEntry newEntry = new TranslationEntry(vpn, ppn, true, false, used, dirty);
         //更改反向页表中此页的状态
-        InvertedPageTable.getInstance().setEntry(pid, newEntry);
+        InvertedPageTable.setEntry(pid, newEntry);
     }
     /**
      * Save the state of this process in preparation for a context switch.
@@ -208,14 +182,13 @@ public class VMProcess extends UserProcess {
      */
     public void saveState() {
 //	super.saveState();
-        Lib.debug(dbgVM, "\t进程 " + pid + " 保存上下文状态");
 
         for (int i = 0; i < Machine.processor().getTLBSize(); i++) {
             //保存此进程当前的TLB信息
             tlbBackUp[i] = Machine.processor().readTLBEntry(i);
             //保存此时TLB的状态到 反向页表中
             if (tlbBackUp[i].valid) {
-                InvertedPageTable.getInstance().updateEntry(pid, tlbBackUp[i]);
+                InvertedPageTable.updateEntry(pid, tlbBackUp[i]);
             }
         }
     }
@@ -227,13 +200,13 @@ public class VMProcess extends UserProcess {
     //在上下文切换后还原此进程的状态
     public void restoreState() {
 //	super.restoreState();
-        Lib.debug(dbgVM, "\t进程 " + pid + " 在上下文切换后还原进程状态");
+
         for (int i = 0; i < tlbBackUp.length; i++) {
             //如果此进程之前的TLB中有页在内存中  则
             if (tlbBackUp[i].valid) {
                 //还原TLB信息
                 Machine.processor().writeTLBEntry(i, tlbBackUp[i]);
-                TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, tlbBackUp[i].vpn);
+                TranslationEntry entry = InvertedPageTable.getEntry(pid, tlbBackUp[i].vpn);
                 if (entry != null && entry.valid) {
                     Machine.processor().writeTLBEntry(i, entry);
                 } else {
@@ -261,10 +234,9 @@ public class VMProcess extends UserProcess {
 
             for (int i = 0; i < section.getLength(); i++) {
                 int virtualPageNum = section.getFirstVPN() + i;
-
                 //将coffsection的加载变为懒加载
                 CoffSectionAddress coffSectionAddress = new CoffSectionAddress(s, i);
-                lazyLoadPages.put(virtualPageNum, coffSectionAddress);
+                    lazyLoadPages.put(virtualPageNum, coffSectionAddress);
             }
         }
 
@@ -294,14 +266,10 @@ public class VMProcess extends UserProcess {
             case Processor.exceptionTLBMiss:
                 //导致TLB缺失的虚拟地址是通过调用processor.readRegister(processor.regBadVAddr);获得的
                 int address = processor.readRegister(Processor.regBadVAddr);
-                int vpn = Processor.pageFromAddress(address);
-                Lib.debug(dbgVM, "\tTLB失效，地址为 " + address + " 虚拟页号为 " + vpn);
                 pageLock.acquire();
                 //处理TLB缺页
                 boolean isSuccessful = handleTLBFault(address);
-                if (isSuccessful) {
-                    Lib.debug(dbgVM, "\tTLB未命中处理成功");
-                } else {
+                if (!isSuccessful) {
                     UThread.finish();
                 }
                 pageLock.release();
@@ -314,21 +282,18 @@ public class VMProcess extends UserProcess {
 
     //TLB错误  说明没有在TLB中找到对应的 虚拟页
     protected boolean handleTLBFault(int vaddr) {
-        Lib.debug(dbgVM, "\tTLB出错");
         //虚拟页数
         int vpn = Processor.pageFromAddress(vaddr);
         //获取到 页错误发生的  反向页表中对应的TranslationEntry
-        TranslationEntry entry = InvertedPageTable.getInstance().getEntry(pid, Processor.pageFromAddress(vaddr));
+        TranslationEntry entry = InvertedPageTable.getEntry(pid, vpn);
         if (entry == null) {
-            Lib.debug(dbgVM, "\t没有在反向页表中找到对应的页");
             return false;
         }
         //如果对应的页不在内存中（valid为false） 需要取一个物理页 分配物理页 （将页装入内存中） 然后装入tlb
         if (!entry.valid) {
-            Lib.debug(dbgVM, "\t页错误");
             int ppn = getFreePage();
             swapIn(ppn, vpn);
-            entry = InvertedPageTable.getInstance().getEntry(pid, Processor.pageFromAddress(vaddr));
+            entry = InvertedPageTable.getEntry(pid, vpn);
         }
         //否则直接牺牲TLB中的页 然后 置换
         int victim = getTLBVictim();
@@ -340,11 +305,9 @@ public class VMProcess extends UserProcess {
     protected void replaceTLBEntry(int index, TranslationEntry newEntry) {
         TranslationEntry oldEntry = Machine.processor().readTLBEntry(index);
         if (oldEntry.valid) {
-            InvertedPageTable.getInstance().updateEntry(pid, oldEntry);
+            InvertedPageTable.updateEntry(pid, oldEntry);
         }
-        Lib.debug(dbgVM, "\t将TLB中第 " + index + " 个的虚拟页 "
-                + oldEntry.vpn + "物理页 " + oldEntry.ppn + " 替换为 虚拟页" + newEntry.vpn +
-                "物理页 " + newEntry.ppn);
+
         Machine.processor().writeTLBEntry(index, newEntry);
     }
 
@@ -357,16 +320,17 @@ public class VMProcess extends UserProcess {
                 return i;
             }
         }
-        //否则随机置换一个
+        //否则 随机置换一个
         return Lib.random(Machine.processor().getTLBSize());
+
     }
 
-    //给进程分配物理页 由于使用懒加载 所以 先设置页表条目  但不分配物理页
+    //给进程分配逻辑页  先设置页表条目  但不分配物理页
     protected boolean allocate(int vpn, int acquirePagesNum, boolean readOnly) {
 
         for (int i = 0; i < acquirePagesNum; ++i) {
-            InvertedPageTable.getInstance().insertEntry(pid, new TranslationEntry(vpn + i, 0, false, readOnly, false, false));
-            SwapperController.getInstance(getSwapFileName()).insertUnallocatedPage(pid, vpn + i);
+            InvertedPageTable.insertEntry(pid, new TranslationEntry(vpn + i, 0, false, readOnly, false, false));
+            SwapperController.getInstance(SwapFileName).insertUnallocatedPage(pid, vpn + i);
             allocatedPages.add(vpn + i);
         }
 
@@ -379,15 +343,16 @@ public class VMProcess extends UserProcess {
         for (int vpn : allocatedPages) {
             pageLock.acquire();
 
-            TranslationEntry entry = InvertedPageTable.getInstance().deleteEntry(pid, vpn);
+            TranslationEntry entry = InvertedPageTable.deleteEntry(pid, vpn);
             if (entry.valid)
                 VMKernel.addFreePage(entry.ppn);
 
-            SwapperController.getInstance(getSwapFileName()).deletePosition(pid, vpn);
+            SwapperController.getInstance(SwapFileName).deletePosition(pid, vpn);
 
             pageLock.release();
         }
     }
+
     protected boolean load(String name, String[] args) {
         Lib.debug(dbgProcess, "UserProcess.load(\"" + name + "\")");
 
@@ -420,7 +385,6 @@ public class VMProcess extends UserProcess {
                 return false;
             }
         }
-
         // make sure the argv array will fit in one page
         byte[][] argv = new byte[args.length][];
         int argsSize = 0;
@@ -467,7 +431,7 @@ public class VMProcess extends UserProcess {
             entryOffset += 4;
             Lib.assertTrue(writeVirtualMemory(stringOffset, argv[i]) == argv[i].length);
             stringOffset += argv[i].length;
-            Lib.assertTrue(writeVirtualMemory(stringOffset, new byte[] { 0 }) == 1);
+            Lib.assertTrue(writeVirtualMemory(stringOffset, new byte[]{0}) == 1);
             stringOffset += 1;
         }
 
@@ -475,7 +439,6 @@ public class VMProcess extends UserProcess {
     }
 
     private static final int pageSize = Processor.pageSize;
-    private static final char dbgVM = 'v';
 
 
     //处理器只能看到TLB
@@ -485,5 +448,7 @@ public class VMProcess extends UserProcess {
     protected LinkedList<Integer> allocatedPages;
     //实现coffsection的懒加载
     protected HashMap<Integer, CoffSectionAddress> lazyLoadPages;
+    private static String SwapFileName = "Proj3SwapFile";
+
 
 }

@@ -10,6 +10,7 @@ import java.util.LinkedList;
 public class SynchList {
     /**
      * Allocate a new synchronized queue.
+	 * 分配新的同步队列。
      */
     public SynchList() {
 	list = new LinkedList<Object>();
@@ -21,6 +22,8 @@ public class SynchList {
      * Add the specified object to the end of the queue. If another thread is
      * waiting in <tt>removeFirst()</tt>, it is woken up.
      *
+	 * 将指定的对象添加到队列的末尾。如果另一个线程在removefirst（）中等待，它将被唤醒。
+	 *
      * @param	o	the object to add. Must not be <tt>null</tt>.
      */
     public void add(Object o) {
@@ -35,8 +38,9 @@ public class SynchList {
     /**
      * Remove an object from the front of the queue, blocking until the queue
      * is non-empty if necessary.
-     *
+     *从队列前面移除一个对象，如有必要，阻塞直到队列非空。
      * @return	the element removed from the front of the queue.
+	 * 从队列前面移除的元素。
      */
     public Object removeFirst() {
 	Object o;
@@ -84,5 +88,7 @@ public class SynchList {
     private LinkedList<Object> list;
     private Lock lock;
     private Condition listEmpty;
+
+	public boolean free;//判断此端口是否已经被占用
 }
 

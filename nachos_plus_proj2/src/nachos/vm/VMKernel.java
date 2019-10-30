@@ -13,24 +13,22 @@ public class VMKernel extends UserKernel {
      * Allocate a new VM kernel.
      */
     public VMKernel() {
-	super();
+        super();
     }
 
     /**
      * Initialize this kernel.
      */
     public void initialize(String[] args) {
-	super.initialize(args);
+        super.initialize(args);
     }
 
     /**
      * Test this kernel.
-     */	
+     */
     public void selfTest() {
-	super.selfTest();
+        super.selfTest();
     }
-
-
 
 
     /**
@@ -38,19 +36,14 @@ public class VMKernel extends UserKernel {
      */
     public void run() {
         super.run();
-//        UserProcess process = UserProcess.newUserProcess();
-//
-//        String shellProgram = Machine.getShellProgramName();
-//        Lib.assertTrue(process.execute(shellProgram, new String[] { }));
-//
-//        KThread.currentThread().finish();
+
     }
-    
+
     /**
      * Terminate this kernel. Never returns.
      */
     public void terminate() {
-	super.terminate();
+        super.terminate();
     }
 
     // dummy variables to make javac smarter

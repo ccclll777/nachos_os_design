@@ -4,16 +4,16 @@ package nachos.machine;
 
 /**
  * A link-layer packet.
- *
+ *   链路层数据包。
  * @see	nachos.machine.NetworkLink
  */
 public class Packet {
     /**
      * Allocate a new packet to be sent, using the specified parameters.
-     *
-     * @param	dstLink		the destination link address.
-     * @param	srcLink		the source link address.
-     * @param	contents	the contents of the packet.
+     *使用指定的参数分配要发送的新数据包。
+     * @param	dstLink		the destination link address.  目标地址
+     * @param	srcLink		the source link address.  源地址
+     * @param	contents	the contents of the packet. 包内容
      */
     public Packet(int dstLink, int srcLink, byte[] contents)
 	throws MalformedPacketException {
@@ -35,6 +35,8 @@ public class Packet {
 	packetBytes[3] = (byte) contents.length;
 
 	// if java had subarrays, i'd use them. but System.arraycopy is ok...
+		//将传输的内容 拷贝到内存的某个区域
+		//src：源数组 srcPos：源数组要复制的起始位置 dest：目标数组  destPos：目标数组复制的起始位置 length：复制的长度
 	System.arraycopy(contents, 0, packetBytes, headerLength,
 			 contents.length);
     }
@@ -45,6 +47,7 @@ public class Packet {
      *
      * @param	packetBytes	the bytes making up this packet.
      */
+    //使用从网络接收的指定字节数组分配新数据包。
     public Packet(byte[] packetBytes) throws MalformedPacketException {
 	this.packetBytes = packetBytes;
 	
@@ -65,18 +68,22 @@ public class Packet {
     }
 
     /** This packet, as an array of bytes that can be sent on a network. */
+    //网络上发的包 内容
     public byte[] packetBytes;
     /** The address of the destination link of this packet. */
+    //目标地址
     public int dstLink;
     /** The address of the source link of this packet. */
+    //源地址
     public int srcLink;
     /** The contents of this packet, excluding the link-layer header. */
+    //发送内容
     public byte[] contents;
 
     /**
      * The number of bytes in a link-layer packet header. The header is
      * formatted as follows:
-     *
+     *链路层数据包头中的字节数。标题的格式如下
      * <table>
      * <tr><td>offset</td><td>size</td><td>value</td></tr>
      * <tr><td>0</td><td>1</td><td>network ID (collision detecting)</td></tr>
@@ -90,6 +97,7 @@ public class Packet {
      * The maximum length, in bytes, of a packet that can be sent or received
      * on the network.
      */
+
     public static final int maxPacketLength = 32;
     /**
      * The maximum number of content bytes (not including the header). Note
