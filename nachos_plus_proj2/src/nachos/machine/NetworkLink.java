@@ -11,7 +11,7 @@ import java.net.*;
  * A full-duplex network link. Provides ordered, unreliable delivery of
  * limited-size packets to other machines on the network. Packets are
  * guaranteed to be uncorrupted as well.
- *
+ * <p>
  * 全双工网络链路。向网络上的其他计算机提供有序、不可靠的有限大小数据包传递。包也保证不被损坏。
  *
  * <p>
@@ -35,7 +35,7 @@ import java.net.*;
  * limited-size packets, but guarantees that packets will not arrive out of
  * order. Some links protect against packet corruption as well. The ethernet
  * protocol is an example of a link layer.
- *
+ * <p>
  * 链路层使用物理层向网络层提供分组接口。
  * 链路层通常提供有限大小数据包的不可靠传输，但保证数据包不会无序到达。
  * 一些链接也可以防止数据包损坏。以太网协议是链路层的一个例子。
@@ -48,7 +48,7 @@ import java.net.*;
  * packets to any machine on the same internet. The most commonly used network
  * layer protocol is IP (Internet Protocol), which is used to connect the
  * Internet.
- *网络层存在以将多个网络连接在一起成为因特网。网络层提供全局唯一地址。
+ * 网络层存在以将多个网络连接在一起成为因特网。网络层提供全局唯一地址。
  * 路由器（也称为网关）在这一层的网络上移动数据包。
  * 网络层向同一因特网上的任何机器提供无序、不可靠的有限大小未损坏数据包的传送。
  * 最常用的网络层协议是ip（internet protocol），用于连接internet。
@@ -57,7 +57,7 @@ import java.net.*;
  * application. This means that the transport layer must deliver uncorrupted
  * bytes to the application, in the same order they were sent. Byte-streams
  * must be connected and disconnected, and exist between ports, not machines.
- *
+ * <p>
  * 会话/传输层为应用程序提供字节流接口。这意味着传输层必须按照发送的顺序将未损坏的字节发送到应用程序。
  * 字节流必须连接和断开，并且存在于端口之间，而不是机器。
  * <p>
@@ -66,7 +66,7 @@ import java.net.*;
  * for a network layer in Nachos. This should simplify your design for the
  * session/transport layer, since you can assume packets never arrive out of
  * order.
- *
+ * <p>
  * 这个类提供了一个链接层抽象。由于我们不允许不同的nachos网络彼此通信，
  * 因此在nachos中不需要网络层。这将简化会话/传输层的设计，
  * 因为您可以假设数据包从来不会无序到达。
@@ -94,80 +94,84 @@ public class NetworkLink {
      * reliability, between 0 and 1, is the probability that any particular
      * packet will not get dropped by the network.
      *
-     * @param	privilege      	encapsulates privileged access to the Nachos
+     * @param    privilege        encapsulates privileged access to the Nachos
      * 				machine.
-	 * 			                封装对nachos的特权访问
+     * 			                封装对nachos的特权访问
      */
     public NetworkLink(Privilege privilege) {
-	System.out.print(" network");
+        System.out.print(" network");
 
-	this.privilege = privilege;
+        this.privilege = privilege;
 
-	try {
-		//获取本机ip
-	    localHost = InetAddress.getLocalHost();
-	}
-	catch (UnknownHostException e) {
-	    localHost = null;
-	}
+        try {
+            //获取本机ip
+            localHost = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            localHost = null;
+        }
 
-	Lib.assertTrue(localHost != null);
+        Lib.assertTrue(localHost != null);
 
-	//加载网络的可靠性
-	reliability = Config.getDouble("NetworkLink.reliability");
-	Lib.assertTrue(reliability > 0 && reliability <= 1.0);
+        //加载网络的可靠性
+        reliability = Config.getDouble("NetworkLink.reliability");
+        Lib.assertTrue(reliability > 0 && reliability <= 1.0);
 
-	socket = null;
+        socket = null;
 
-	for (linkAddress=0; linkAddress<Packet.linkAddressLimit; linkAddress++) {
-	    try {
-	    	//表示创建一个默认的套接字，并绑定到特定的端口号及指定地址
-		socket = new DatagramSocket(portBase + linkAddress, localHost);
-		break;
-	    }
-	    catch (SocketException e) {
-	    }
-	}
+        for (linkAddress = 0; linkAddress < Packet.linkAddressLimit; linkAddress++) {
+            try {
+                //表示创建一个默认的套接字，并绑定到特定的端口号及指定地址
+                socket = new DatagramSocket(portBase + linkAddress, localHost);
+                break;
+            } catch (SocketException e) {
+            }
+        }
 
-	if (socket == null) {
-	    System.out.println("");
-	    System.out.println("Unable to acquire a link address!");
-	    Lib.assertNotReached();
-	}
+        if (socket == null) {
+            System.out.println("");
+            System.out.println("Unable to acquire a link address!");
+            Lib.assertNotReached();
+        }
 
-	System.out.print("(" + linkAddress + ")");
+        System.out.print("(" + linkAddress + ")");
 
-	receiveInterrupt = new Runnable() {
-		public void run() { receiveInterrupt(); }
-	    };
+        receiveInterrupt = new Runnable() {
+            public void run() {
+                receiveInterrupt();
+            }
+        };
 
-	sendInterrupt = new Runnable() {
-		public void run() { sendInterrupt(); }
-	    };
+        sendInterrupt = new Runnable() {
+            public void run() {
+                sendInterrupt();
+            }
+        };
 
-	scheduleReceiveInterrupt();
+        scheduleReceiveInterrupt();
 
-	Thread receiveThread = new Thread(new Runnable() {
-		public void run() { receiveLoop(); }
-	    });
+        Thread receiveThread = new Thread(new Runnable() {
+            public void run() {
+                receiveLoop();
+            }
+        });
 
-	receiveThread.start();
+        receiveThread.start();
     }
 
     /**
      * Returns the address of this network link.
      *
-     * @return	the address of this network link.
+     * @return the address of this network link.
      */
     //返回 某个节点的网络链接地址
     public int getLinkAddress() {
-	return linkAddress;
+        return linkAddress;
     }
 
     /**
      * Set this link's receive and send interrupt handlers.
      *
-	 * 设置此链接的接收和发送中断处理程序。
+     * 设置此链接的接收和发送中断处理程序。
      * <p>
      * The receive interrupt handler is called every time a packet arrives
      * and can be read using <tt>receive()</tt>.
@@ -177,170 +181,166 @@ public class NetworkLink {
      * <tt>send()</tt> is finished being sent. This means that another
      * packet can be sent.
      *
-	 *
-	 *
-	 * <p>
-	 *
-	 * 每次用
-	 *
-	 * <tt>send（）</tt>已完成发送。这意味着另一个
-	 *
-	 * 可以发送数据包
-     * @param	receiveInterruptHandler	the callback to call when a packet
+     *
+     *
+     * <p>
+     *
+     * 每次用
+     *
+     * <tt>send（）</tt>已完成发送。这意味着另一个
+     *
+     * 可以发送数据包
+     * @param    receiveInterruptHandler    the callback to call when a packet
      *					arrives. 包到达时调用的回调
-     * @param	sendInterruptHandler	the callback to call when another
+     * @param    sendInterruptHandler    the callback to call when another
      *					packet can be sent.  当可以发送另一个数据包时调用的回调。
      */
     public void setInterruptHandlers(Runnable receiveInterruptHandler,
-				     Runnable sendInterruptHandler) {
-	this.receiveInterruptHandler = receiveInterruptHandler;
-	this.sendInterruptHandler = sendInterruptHandler;
+                                     Runnable sendInterruptHandler) {
+        this.receiveInterruptHandler = receiveInterruptHandler;
+        this.sendInterruptHandler = sendInterruptHandler;
     }
 
     private void scheduleReceiveInterrupt() {
-	privilege.interrupt.schedule(Stats.NetworkTime, "network recv",
-				     receiveInterrupt);
+        privilege.interrupt.schedule(Stats.NetworkTime, "network recv",
+                receiveInterrupt);
     }
 
     private synchronized void receiveInterrupt() {
-	Lib.assertTrue(incomingPacket == null);
+        Lib.assertTrue(incomingPacket == null);
 
-	if (incomingBytes != null) {
-		//请求允许接受数据包
-	    if (Machine.autoGrader().canReceivePacket(privilege)) {
-		try {
-		    incomingPacket = new Packet(incomingBytes);
+        if (incomingBytes != null) {
+            //请求允许接受数据包
+            if (Machine.autoGrader().canReceivePacket(privilege)) {
+                try {
+                    incomingPacket = new Packet(incomingBytes);
 
-		    privilege.stats.numPacketsReceived++;
-		}
-		catch (MalformedPacketException e) {
-		}
-	    }
+                    privilege.stats.numPacketsReceived++;
+                } catch (MalformedPacketException e) {
+                }
+            }
 
-	    incomingBytes = null;
-	    //唤醒此线程
-	    notify();
+            incomingBytes = null;
+            //唤醒此线程
+            notify();
 
-	    if (incomingPacket == null)
-	    	//表示接收到数据包
-		scheduleReceiveInterrupt();
-	    else if (receiveInterruptHandler != null)
-		receiveInterruptHandler.run();
-	}
-	else {
-	    scheduleReceiveInterrupt();
-	}
+            if (incomingPacket == null)
+                //表示接收到数据包
+                scheduleReceiveInterrupt();
+            else if (receiveInterruptHandler != null)
+                receiveInterruptHandler.run();
+        } else {
+            scheduleReceiveInterrupt();
+        }
     }
 
     /**
      * Return the next packet received.
      *
-	 * 返回接收到的下一个数据包。
-     * @return	the next packet received, or <tt>null</tt> if no packet is
+     * 返回接收到的下一个数据包。
+     * @return the next packet received, or <tt>null</tt> if no packet is
      * 		available.  收到的下一个数据包，如果没有可用的数据包，则为空
      */
     public Packet receive() {
-	Packet p = incomingPacket;
+        Packet p = incomingPacket;
 
-	if (incomingPacket != null) {
-	    incomingPacket = null;
-	    scheduleReceiveInterrupt();
-	}
+        if (incomingPacket != null) {
+            incomingPacket = null;
+            scheduleReceiveInterrupt();
+        }
 
-	return p;
+        return p;
     }
 
     private void receiveLoop() {
-	while (true) {
-	    synchronized(this) {
-		while (incomingBytes != null) {
-		    try {
-			wait();
-		    }
-		    catch (InterruptedException e) {
-		    }
-		}
-	    }
+        while (true) {
+            synchronized (this) {
+                while (incomingBytes != null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
 
-	    byte[] packetBytes;
+            byte[] packetBytes;
 
-	    try {
-		byte[] buffer = new byte[Packet.maxPacketLength];
+            try {
+                byte[] buffer = new byte[Packet.maxPacketLength];
 
-			//用来接受长度为length的buf数据(即数据存于字节数组buf中)
-		DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+                //用来接受长度为length的buf数据(即数据存于字节数组buf中)
+                DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
 
-		//接受数据报
-		socket.receive(dp);
+                //接受数据报
+                socket.receive(dp);
 
-		packetBytes = new byte[dp.getLength()];
+                packetBytes = new byte[dp.getLength()];
 
-		//将buffer拷贝到packetBytes
-		System.arraycopy(buffer,0, packetBytes,0, packetBytes.length);
-	    }
-	    catch (IOException e) {
-		return;
-	    }
+                //将buffer拷贝到packetBytes
+                System.arraycopy(buffer, 0, packetBytes, 0, packetBytes.length);
+            } catch (IOException e) {
+                return;
+            }
 
-	    //锁住此对象  然后接受数据
-	    synchronized(this) {
-		incomingBytes = packetBytes;
-	    }
-	}
+            //锁住此对象  然后接受数据
+            synchronized (this) {
+                incomingBytes = packetBytes;
+            }
+        }
     }
 
     private void scheduleSendInterrupt() {
-	privilege.interrupt.schedule(Stats.NetworkTime, "network send",
-				     sendInterrupt);
+        privilege.interrupt.schedule(Stats.NetworkTime, "network send",
+                sendInterrupt);
     }
 
     private void sendInterrupt() {
-	Lib.assertTrue(outgoingPacket != null);
+        Lib.assertTrue(outgoingPacket != null);
 
-	// randomly drop packets, according to its reliability
-		//根据可靠性随机丢弃数据包
-	if (Machine.autoGrader().canSendPacket(privilege) &&
-	    Lib.random() <= reliability) {
-	    // ok, no drop
-	    privilege.doPrivileged(new Runnable() {
-		    public void run() { sendPacket(); }
-		});
-	}
-	else {
-	    outgoingPacket = null;
-	}
+        // randomly drop packets, according to its reliability
+        //根据可靠性随机丢弃数据包
+        if (Machine.autoGrader().canSendPacket(privilege) &&
+                Lib.random() <= reliability) {
+            // ok, no drop
+            privilege.doPrivileged(new Runnable() {
+                public void run() {
+                    sendPacket();
+                }
+            });
+        } else {
+            outgoingPacket = null;
+        }
 
-	if (sendInterruptHandler != null)
-	    sendInterruptHandler.run();
+        if (sendInterruptHandler != null)
+            sendInterruptHandler.run();
     }
 
     private void sendPacket() {
-	Packet p = outgoingPacket;
-	outgoingPacket = null;
+        Packet p = outgoingPacket;
+        outgoingPacket = null;
 
-	try {
-		//发送数据包
-	    socket.send(new DatagramPacket(p.packetBytes, p.packetBytes.length,
-					   localHost, portBase+p.dstLink));
+        try {
+            //发送数据包
+            socket.send(new DatagramPacket(p.packetBytes, p.packetBytes.length,
+                    localHost, portBase + p.dstLink));
 
-	    privilege.stats.numPacketsSent++;
-	}
-	catch (IOException e) {
-	}
+            privilege.stats.numPacketsSent++;
+        } catch (IOException e) {
+        }
     }
 
     /**
      * Send another packet. If a packet is already being sent, the result is
      * not defined.
      *
-	 * 发送数据包
-     * @param	pkt	the packet to send.
+     * 发送数据包
+     * @param    pkt    the packet to send.
      */
     public void send(Packet pkt) {
-	if (outgoingPacket == null)
-	    scheduleSendInterrupt();
+        if (outgoingPacket == null)
+            scheduleSendInterrupt();
 
-	outgoingPacket = pkt;
+        outgoingPacket = pkt;
     }
 
     private static final int hash;
@@ -356,9 +356,9 @@ public class NetworkLink {
     public static final byte networkID;
 
     static {
-	hash = System.getProperty("user.name").hashCode();
-	portBase = 0x4E41 + Math.abs(hash%0x4E41);
-	networkID  = (byte) (hash/0x4E41);
+        hash = System.getProperty("user.name").hashCode();
+        portBase = 0x4E41 + Math.abs(hash % 0x4E41);
+        networkID = (byte) (hash / 0x4E41);
     }
 
     private Privilege privilege;

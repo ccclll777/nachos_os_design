@@ -1,0 +1,15 @@
+OUTPUT_FORMAT("ecoff-littlemips")
+SEARCH_DIR(.)
+ENTRY(__start)
+
+SECTIONS {
+  .text         0           	: { *(.text) } 
+  .text.startup BLOCK(0x400)    : { *(.text.startup) }
+  .rdata	    BLOCK(0x400)	: { *(.rdata) }
+  .data		    BLOCK(0x400)	: { *(.data) }
+  .rodata	    BLOCK(0x400)	: { *(.rodata) *(.rodata.str1.4)}
+  .sbss		    BLOCK(0x400)	: { *(.sbss) }
+  .bss		    BLOCK(0x400)	: { *(.bss) }
+  .scommon	    BLOCK(0x400)	: { *(.scommon) }
+  /DISCARD/	                    : { *(.reginfo) *(.pdr) *(.comment) *(.gnu.attributes) }
+}
