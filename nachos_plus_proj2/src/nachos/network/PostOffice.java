@@ -9,6 +9,11 @@ import nachos.threads.Lock;
 import nachos.threads.Semaphore;
 import nachos.threads.SynchList;
 
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.TreeSet;
+
 /**
  * A collection of message queues, one for each local port. A
  * <tt>PostOffice</tt> interacts directly with the network hardware. Because
@@ -42,11 +47,16 @@ public class PostOffice {
         sendLock = new Lock();
         portLock = new Lock();
 
-        //queues = new SynchList[MailMessage.portLimit];
-        queues = new SynchList[UdpPacket.maxPortLimit];
+        queues = new SynchList[MailMessage.portLimit];
+        unackMessages = new HashSet<UdpPacket>();//未确认消息
         for (int i = 0; i < queues.length; i++)
             queues[i] = new SynchList();
-
+        waitingDataMessages = new Deque[MailMessage.portLimit];
+        availPorts = new TreeSet<Integer>();
+        for (int i = 0; i < MailMessage.portLimit; i++) {
+            availPorts.add(i);
+            waitingDataMessages[i] = new LinkedList<UdpPacket>();
+        }
         Runnable receiveHandler = new Runnable() {
             public void run() {
                 receiveInterrupt();
@@ -62,10 +72,18 @@ public class PostOffice {
 
         KThread t = new KThread(new Runnable() {
             public void run() {
-                postalDelivery();
+                try {
+                    postalDelivery();
+                } catch (MalformedPacketException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
+        KThread resend = new KThread(new Runnable() {
+            public void run() { resendAll(); }
+        });
+//        resend.fork();
         t.fork();
     }
 
@@ -73,32 +91,32 @@ public class PostOffice {
      * Retrieve a message on the specified port, waiting if necessary.
      * 检索指定端口上的消息，必要时等待。
      *
-     * @param    port    the port on which to wait for a message.
-     * 等待消息的端口。
+     * @param port the port on which to wait for a message.
+     *             等待消息的端口。
      * @return the message received.
      * 收到的消息
      */
     //public MailMessage receive(int port) {
     public UdpPacket receive(int port) {
 
-        Lib.assertTrue(port >= 0 && port < queues.length);
+//        Lib.assertTrue(port >= 0 && port < queues.length);
 
         Lib.debug(dbgNet, "waiting for mail on port " + port);
 
         //MailMessage mail = (MailMessage) queues[port].removeFirst();//Dont want to return mail.Return our thing
-        UdpPacket mail = (UdpPacket) queues[port].removeFirst();
+//        UdpPacket mail = (UdpPacket) queues[port].removeFirst();
 
-        if (Lib.test(dbgNet))
-            System.out.println("got mail on port " + port + ": " + mail);
-
-        return mail;
+//        if (Lib.test(dbgNet))
+//            System.out.println("got mail on port " + port + ": " + mail);
+        return (waitingDataMessages[port].isEmpty()) ? null : waitingDataMessages[port].removeFirst();
+//        return mail;
     }
 
     /**
      * Wait for incoming messages, and then put them in the correct mailbox.
      * 等待收到的邮件，然后将它们放入正确的邮箱。
      */
-    private void postalDelivery() {
+    private void postalDelivery() throws MalformedPacketException {
         while (true) {
             messageReceived.P();
 
@@ -112,11 +130,37 @@ public class PostOffice {
                 continue;
             }
 
+//            //如果是回复包
+//            if(mail.status == UdpPacket.ACK )
+//            {
+//                for(UdpPacket m : unackMessages)
+//                {
+//                    if(m.destPort == mail.srcPort && m.packet.dstLink == mail.packet.srcLink && m.seqNum == mail.seqNum)
+//                    {
+//                        unackMessages.remove(m);
+//                        break;
+//                    }
+//                }
+//            }
+////            如果是数据包  则添加到对应端口的队列
+//            if(mail.status == UdpPacket.DATA )
+//            {
+//                waitingDataMessages[mail.destPort].add(mail);
+//                //然后构造返回包
+//                UdpPacket ackmail = new UdpPacket(mail.packet.srcLink, mail.destPort,mail.packet.dstLink, mail.srcPort, mail.status,mail.seqNum,mail.payload);
+//                send(ackmail);
+//            }
+
+
+
             if (Lib.test(dbgNet))
                 System.out.println("delivering mail..."
                         + ": " + mail);
 
-            // 自动将邮件添加到邮箱并唤醒等待线程
+//            System.out.println("收到数据：" + Lib.bytesToString(mail.payload, 0, mail.payload.length) + "从" + mail.packet.srcLink+" 的 " +mail.srcPort);
+            waitingDataMessages[mail.destPort].add(mail);
+
+//            // 自动将邮件添加到邮箱并唤醒等待线程
             queues[mail.destPort].add(mail);
             //queues[mail.destPort].free = false;
             setPortUsed(mail.destPort);
@@ -126,6 +170,7 @@ public class PostOffice {
     /**
      * Called when a packet has arrived and can be dequeued from the network
      * link.
+     * 当数据包到达并可以从网络链路中退出队列时调用。
      */
     private void receiveInterrupt() {
         messageReceived.V();
@@ -139,7 +184,9 @@ public class PostOffice {
             System.out.println("sending mail: " + mail);
 
         sendLock.acquire();
+//        System.out.println("send发出数据：" + Lib.bytesToString(mail.payload,0,mail.payload.length) + "到" + mail.packet.dstLink+" 的 " +mail.destPort);
         Machine.networkLink().send(mail.packet);
+        unackMessages.add(mail);
         messageSent.P();
 
         sendLock.release();
@@ -175,11 +222,27 @@ public class PostOffice {
             queues[i].free = false;
         portLock.release();
     }
+    private void resendAll() {
+        while(true) {
+            Lock lock = new Lock();
+            lock.acquire();
 
+            for(UdpPacket m : unackMessages)
+                send(m);
+
+            lock.release();
+            NetKernel.alarm.waitUntil(RETRANSMIT_INTERVAL);
+        }
+    }
+    private static final int RETRANSMIT_INTERVAL = 20000;
     private Lock portLock;
     private SynchList[] queues;
     private Semaphore messageReceived;    // 当消息出队列时唤醒
     private Semaphore messageSent;    // 到消息入队列时唤醒
     private Lock sendLock;
     private static final char dbgNet = 'n';
+    public HashSet<UdpPacket> unackMessages;//未确认消息
+    public TreeSet<Integer> availPorts;//可分配端口
+    public Deque<UdpPacket>[] waitingDataMessages;
+
 }

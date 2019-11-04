@@ -1,8 +1,8 @@
-package nachos.network;///NEW/////
+package nachos.network;
 
 import nachos.machine.Lib;
 import nachos.machine.Machine;
-import nachos.machine.MalformedPacketException;
+import nachos.threads.KThread;
 import nachos.userprog.UserKernel;
 
 /**
@@ -23,6 +23,7 @@ public class NetKernel extends UserKernel {
 		super.initialize(args);
 
 		postOffice = new PostOffice();
+		ncc = new NetCommandCenter();	// used for selfTest/run
 	}
 
 	/**
@@ -33,94 +34,93 @@ public class NetKernel extends UserKernel {
 	 */
 	public void selfTest() {
 		super.selfTest();
-//		Lib.enableDebugFlags("n");
-//		KThread serverThread = new KThread(new Runnable() {
-//			public void run() { pingServer(); }
-//		});
-//
-//		serverThread.fork();
-//
+		
+		// stalling to prepare other machines to run
 //		System.out.println("Press any key to start the network test...");
 //		console.readByte(true);
-//
+		
+		/**
+		 * A simple test to verify NetCommandCenter's connect/accept protocol.
+		 * Currently commented out to do other testing
+		 */
+		
 //		int local = Machine.networkLink().getLinkAddress();
-//
-//		// ping this machine first
-//		ping(local);
-//
-//		// if we're 0 or 1, ping the opposite
-//		if (local <= 1)
-//			ping(1-local);
-	}
-
-	private void ping(int dstLink) {
-		int srcLink = Machine.networkLink().getLinkAddress();
-
-		System.out.println("PING " + dstLink + " from " + srcLink);
-
-		long startTime = Machine.timer().getTime();
-
-		//MailMessage ping;
-		UdpPacket ping;
-
-		byte[] barr = {'q','a','a','a','a','a','a','a','a','a','a','a'};
-
-		try {
-			ping = new UdpPacket(dstLink,0, Machine.networkLink().getLinkAddress(),
-					1,UdpPacket.DATA, 0,
-					barr);
-		}
-		catch (MalformedPacketException e) {
-			Lib.assertNotReached();
-			return;
-		}
-
-		postOffice.send(ping);
-
-		//MailMessage ack = postOffice.receive(0);
-		UdpPacket ack = postOffice.receive(0);
-
-		System.out.println(ack);
-
-		long endTime = Machine.timer().getTime();
-
-		System.out.println("time=" + (endTime-startTime) + " ticks");
-	}
-
-	private void pingServer() {
-		while (true) {
-			//MailMessage ping = postOffice.receive(1);
-			UdpPacket ping = postOffice.receive(1);
-
-			UdpPacket ack;
-
-			try {
-		/*ack = new MailMessage(ping.packet.srcLink, ping.srcPort,
-				      ping.packet.dstLink, ping.dstPort,
-				      ping.contents);*/
-				ack = new UdpPacket(ping.packet.dstLink, ping.destPort, ping.packet.srcLink, ping.srcPort, UdpPacket.DATA,0, ping.payload);
-			}
-			catch (MalformedPacketException e) {
-				// should never happen...
-				continue;
-			}
-
-			postOffice.send(ack);
-		}
+//		
+//		// send syn packet if network 0
+//		if(local == 0) {
+//			ncc.connect(1, 1);
+//		}
+//		// send synack packet if network 1 and syn packet is detected 
+//		else {
+//			ncc.accept(1);
+//		}
+//		Machine.halt();
 	}
 
 	/**
 	 * Start running user programs.
+	 * To replicate the testing do the following:
+	 *  0) Before running, use "-d n" in run config arguments for better view.
+	 * 	1) Create 3 machine instances (3 consoles)
+	 *  2) Press any key in Network0
+	 *  3) Press any key in Network1
+	 *  4) Press any key in Network2
+	 *  5) Hope that the output doesn't fail (Current implementation suffers from synchronization
+	 *  issues)
 	 */
 	public void run() {
 		super.run();
-	/*
-		NetProcess process = NetProcess.newNetProcess();
+//		 C code testing for project 3 (copy and paste from project 2)
+		int local = Machine.networkLink().getLinkAddress();
 
-		String shellProgram = Machine.getShellProgramName();
-		Lib.assertTrue(process.execute(shellProgram, new String[] { }));
+		// Network0 testing
+		if(local == 0) {
+			// Create NetProcess
+			NetProcess process = NetProcess.newNetProcess();
 
-		KThread.currentThread().finish();*/
+			// client = chat.c
+			String shellProgram = "client.coff";
+
+			// Pass arguments for coff file
+			String[] arguments = { "2", "15", "Tired...", ""+"Tired...".length()};
+
+			// Run the program
+			Lib.assertTrue(process.execute(shellProgram, arguments));
+
+			KThread.currentThread().finish();
+		}
+		// Network 1 testing
+		else if(local == 1) {
+			// Create NetProcess
+			NetProcess process = NetProcess.newNetProcess();
+
+			// client = chat.c
+			String shellProgram = "client.coff";
+
+			// Pass arguments for coff file
+			String[] arguments = { "2", "15", "I am", ""+"I am".length() };
+
+			// Run the program
+			Lib.assertTrue(process.execute(shellProgram, arguments));
+
+			KThread.currentThread().finish();
+		}
+		// Network 2 testing
+		else {
+			// Create NetProcess
+			NetProcess process = NetProcess.newNetProcess();
+
+			// host = chatserver.c
+			String shellProgram = "host.coff";
+
+			// Pass arguments for coff file
+			String[] arguments = { "15", ""+"Tired...".length(), ""+"I am".length() };
+
+			// Run the program
+			Lib.assertTrue(process.execute(shellProgram, arguments));
+
+			KThread.currentThread().finish();
+		}
 	}
 
 	/**
@@ -130,8 +130,58 @@ public class NetKernel extends UserKernel {
 		super.terminate();
 	}
 
-	//Had to make it available to use the send/receive functions
-	public static PostOffice postOffice;
+	/*
+	private void ping(int dstLink) {
+		int srcLink = Machine.networkLink().getLinkAddress();
+
+		System.out.println("PING " + dstLink + " from " + srcLink);
+
+		long startTime = Machine.timer().getTime();
+
+		MailMessage ping;
+
+		try {
+			ping = new MailMessage(dstLink, 1,
+					Machine.networkLink().getLinkAddress(), 0,
+					new byte[0]);
+		}
+		catch (MalformedPacketException e) {
+			Lib.assertNotReached();
+			return;
+		}
+
+		postOffice.send(ping);
+
+		MailMessage ack = postOffice.receive(0);
+
+		long endTime = Machine.timer().getTime();
+
+		System.out.println("time=" + (endTime-startTime) + " ticks");	
+	}
+
+	private void pingServer() {
+		while (true) {
+			MailMessage ping = postOffice.receive(1);
+
+			MailMessage ack;
+
+			try {
+				ack = new MailMessage(ping.packet.srcLink, ping.srcPort,
+						ping.packet.dstLink, ping.dstPort,
+						ping.contents);
+			}
+			catch (MalformedPacketException e) {
+				// should never happen...
+				continue;
+			}
+
+			postOffice.send(ack);
+		}	
+	}
+	*/
+	// variables for selfTest
+	private PostOffice postOffice;
+	private NetCommandCenter ncc; // used for selfTest/run
 
 	// dummy variables to make javac smarter
 	private static NetProcess dummy1 = null;

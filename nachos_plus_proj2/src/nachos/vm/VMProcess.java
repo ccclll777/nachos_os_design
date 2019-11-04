@@ -418,7 +418,6 @@ public class VMProcess extends UserProcess {
         if (!loadSections())
             return false;
 
-        // store arguments in last page
         int entryOffset = (numPages - 1) * pageSize;
         int stringOffset = entryOffset + args.length * 4;
 

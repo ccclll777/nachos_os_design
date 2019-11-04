@@ -66,6 +66,10 @@ public class Packet {
 	System.arraycopy(packetBytes, headerLength, contents, 0,
 			 contents.length);
     }
+	@Override
+	public String toString(){
+		return "packet || from: "+ srcLink +" to: "+ dstLink+" "+contents.length+" bytes" + "    content:"+ contents;
+	}
 
     /** This packet, as an array of bytes that can be sent on a network. */
     //网络上发的包 内容

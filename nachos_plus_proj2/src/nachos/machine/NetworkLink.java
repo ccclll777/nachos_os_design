@@ -2,10 +2,12 @@
 
 package nachos.machine;
 
+import nachos.network.UdpPacket;
 import nachos.security.Privilege;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 
 /**
  * A full-duplex network link. Provides ordered, unreliable delivery of
@@ -76,9 +78,9 @@ import java.net.*;
 
 /**
  * UDP socket
- *
- *
- *
+ * <p>
+ * <p>
+ * <p>
  * 每个网络链接都有一个链接地址，一个唯一标识网络上链接的数字。链接地址由getLinkaddress（）返回。
  * 数据包由一个报头和一些数据字节组成。报头指定发送数据包的机器的链接地址（源链接地址）、要向其发送数据包的机器的链接地址（目标链接地址）以及数据包中包含的数据字节数。
  * 网络硬件不分析数据字节，而头是。当链路发送数据包时，它只将其发送到报头的destination link address字段中指定的链路。请注意，源地址可能是伪造的。
@@ -88,15 +90,15 @@ import java.net.*;
 public class NetworkLink {
     /**
      * Allocate a new network link.
-     *分配新的网络链接
+     * 分配新的网络链接
      * <p>
      * <tt>nachos.conf</tt> specifies the reliability of the network. The
      * reliability, between 0 and 1, is the probability that any particular
      * packet will not get dropped by the network.
      *
-     * @param    privilege        encapsulates privileged access to the Nachos
-     * 				machine.
-     * 			                封装对nachos的特权访问
+     * @param privilege encapsulates privileged access to the Nachos
+     *                  machine.
+     *                  封装对nachos的特权访问
      */
     public NetworkLink(Privilege privilege) {
         System.out.print(" network");
@@ -170,12 +172,12 @@ public class NetworkLink {
 
     /**
      * Set this link's receive and send interrupt handlers.
-     *
+     * <p>
      * 设置此链接的接收和发送中断处理程序。
      * <p>
      * The receive interrupt handler is called every time a packet arrives
      * and can be read using <tt>receive()</tt>.
-     *每次数据包到达时都会调用接收中断处理程序，并且可以使用<tt>receive（）</tt>读取。
+     * 每次数据包到达时都会调用接收中断处理程序，并且可以使用<tt>receive（）</tt>读取。
      * <p>
      * The send interrupt handler is called every time a packet sent with
      * <tt>send()</tt> is finished being sent. This means that another
@@ -184,16 +186,17 @@ public class NetworkLink {
      *
      *
      * <p>
-     *
+     * <p>
      * 每次用
      *
      * <tt>send（）</tt>已完成发送。这意味着另一个
-     *
+     * <p>
      * 可以发送数据包
-     * @param    receiveInterruptHandler    the callback to call when a packet
-     *					arrives. 包到达时调用的回调
-     * @param    sendInterruptHandler    the callback to call when another
-     *					packet can be sent.  当可以发送另一个数据包时调用的回调。
+     *
+     * @param receiveInterruptHandler the callback to call when a packet
+     *                                arrives. 包到达时调用的回调
+     * @param sendInterruptHandler    the callback to call when another
+     *                                packet can be sent.  当可以发送另一个数据包时调用的回调。
      */
     public void setInterruptHandlers(Runnable receiveInterruptHandler,
                                      Runnable sendInterruptHandler) {
@@ -214,8 +217,14 @@ public class NetworkLink {
             if (Machine.autoGrader().canReceivePacket(privilege)) {
                 try {
                     incomingPacket = new Packet(incomingBytes);
-
+//                    UdpPacket udpPacket = new UdpPacket(incomingPacket);
+//                    if(udpPacket.status == 0)
+//                    {
+//                        udpPackets.add(udpPacket);
+//                        System.out.println("用户说"+Lib.bytesToString(udpPacket.payload,0,udpPacket.payload.length));
+//                    }
                     privilege.stats.numPacketsReceived++;
+//                    System.out.println("networkreceive:"+incomingPacket.toString());
                 } catch (MalformedPacketException e) {
                 }
             }
@@ -236,14 +245,15 @@ public class NetworkLink {
 
     /**
      * Return the next packet received.
-     *
+     * <p>
      * 返回接收到的下一个数据包。
+     *
      * @return the next packet received, or <tt>null</tt> if no packet is
-     * 		available.  收到的下一个数据包，如果没有可用的数据包，则为空
+     * available.  收到的下一个数据包，如果没有可用的数据包，则为空
      */
     public Packet receive() {
         Packet p = incomingPacket;
-
+//        System.out.println("数据包被packoffice接收");
         if (incomingPacket != null) {
             incomingPacket = null;
             scheduleReceiveInterrupt();
@@ -263,7 +273,7 @@ public class NetworkLink {
                 }
             }
 
-            byte[] packetBytes;
+            byte[] packetBytes = new byte[0];
 
             try {
                 byte[] buffer = new byte[Packet.maxPacketLength];
@@ -273,13 +283,23 @@ public class NetworkLink {
 
                 //接受数据报
                 socket.receive(dp);
+//                System.out.println("networkreceive:"+dp.getLength());
 
                 packetBytes = new byte[dp.getLength()];
 
                 //将buffer拷贝到packetBytes
                 System.arraycopy(buffer, 0, packetBytes, 0, packetBytes.length);
+                Packet packet = new Packet(packetBytes);
+                UdpPacket udpPacket = new UdpPacket(packet);
+                if(udpPacket.status == 0)
+                {
+                    udpPackets.add(udpPacket);
+                    System.out.println("用户说: "+Lib.bytesToString(udpPacket.payload,0,udpPacket.payload.length));
+                }
             } catch (IOException e) {
                 return;
+            } catch (MalformedPacketException e) {
+                e.printStackTrace();
             }
 
             //锁住此对象  然后接受数据
@@ -320,10 +340,11 @@ public class NetworkLink {
         outgoingPacket = null;
 
         try {
-            //发送数据包
-            socket.send(new DatagramPacket(p.packetBytes, p.packetBytes.length,
-                    localHost, portBase + p.dstLink));
-
+            //发送数据
+           DatagramPacket datagramPacket = new DatagramPacket(p.packetBytes, p.packetBytes.length,
+                   localHost, portBase + p.dstLink);
+            socket.send(datagramPacket);
+//            System.out.println("networklink发出数据：" + datagramPacket.getData().length + "到" + p.dstLink );
             privilege.stats.numPacketsSent++;
         } catch (IOException e) {
         }
@@ -332,9 +353,10 @@ public class NetworkLink {
     /**
      * Send another packet. If a packet is already being sent, the result is
      * not defined.
-     *
+     * <p>
      * 发送数据包
-     * @param    pkt    the packet to send.
+     *
+     * @param pkt the packet to send.
      */
     public void send(Packet pkt) {
         if (outgoingPacket == null)
@@ -379,6 +401,6 @@ public class NetworkLink {
     private byte[] incomingBytes = null;
     private Packet incomingPacket = null;
     private Packet outgoingPacket = null;
-
     private boolean sendBusy = false;
+    public ArrayList<UdpPacket> udpPackets = new ArrayList<UdpPacket>();
 }

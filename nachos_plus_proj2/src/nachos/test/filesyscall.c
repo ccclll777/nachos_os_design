@@ -100,23 +100,6 @@ for (i = 0; i < 14; i++) close(fds[i]);
 if (flag) printf("测试完成\n\n");
 else printf("Test 3 failed\n\n");
 
-
-/* Test 4 */
-
-printf("测试文件复制\n");
-flag = true;
-fd = open("cp.in");
-ret = open("cp.out");
-char buf[100];
-int amount;
-while ((amount = read(fd, buf, 100))>0) {
-    write(ret, buf, amount);
-}
-close(fd);
-close(ret);
-if (flag) printf("测试文件复制 成功\n");
-else printf("测试文件复制 失败\n\n");
-
 int fd = 0;
 char * filename = "aa.txt";
 int ByteNum;

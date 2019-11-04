@@ -8,19 +8,20 @@ import nachos.machine.Packet;
 public class UdpPacket {
 
     public Packet packet;
-
     public int destPort;//目标端口号  附加头的第一位
     public int srcPort;//源端口号     附加头的第二位
     public int status;//状态位
     public int seqNum;//序列号    后四位
-
     public byte[] payload;//此包的所有内容
-
     public int headerLength = 4;
     public int maxContentsLength = Packet.maxContentsLength - headerLength;//最大内容长度
-
+    public static int   DATA = (0);
+    public static int SYN = (1);
+    public static int ACK = (2);
+    public static int STP = (4);
+    public static int FIN = (8);
+    public static int SYNACK = (3);
     public UdpPacket(){}
-
     public UdpPacket(int dstLink, int destPort, int srcLink, int srcPort, int status, int seqNum, byte[] payload)throws MalformedPacketException {
         //Make sure we have a valid port range
         if (destPort < 0 || destPort >= maxPortLimit ||
@@ -69,12 +70,7 @@ public class UdpPacket {
     }
 
 
-    public static int   DATA = (0);
-    public static int SYN = (1);
-    public static int ACK = (2);
-    public static int STP = (4);
-    public static int FIN = (8);
-    public static int SYNACK = (3);
+
 
 
     public static final int maxPortLimit = 128;

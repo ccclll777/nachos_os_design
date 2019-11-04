@@ -48,7 +48,12 @@ public class SynchList {
 
 	lock.acquire();
 	while (list.isEmpty())
-	    listEmpty.sleep();
+	{
+		listEmpty.sleep();
+
+
+	}
+
 	o = list.removeFirst();
 	lock.release();
 

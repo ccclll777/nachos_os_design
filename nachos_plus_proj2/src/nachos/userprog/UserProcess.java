@@ -40,7 +40,7 @@ public class UserProcess {
     protected static final int stdin = 0;//标准输入为0
     protected static final int stdout = 1;//标准输出为1
 
-    public FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
+    public static FileDescriptor FileDescriptors[] = new FileDescriptor[MaxFileDescriptor];//此用户进程打开的所有文件列表
 
     private LinkedList<Integer> childProcesses = new LinkedList<Integer>();//存放子进程进程号的数组
 
@@ -523,7 +523,7 @@ public class UserProcess {
     /**
      * Handle the halt() system call.
      */
-    protected int handleHalt() {
+    private int handleHalt() {
         //只有第一个进程才能调用handleHalt的系统调用  如果其他进程想调用 则会立即返回
         if (this.pid != 0) {
             Lib.debug(dbgProcess, "只有第一个用户进程才能执行 handleHalt()");
@@ -539,7 +539,7 @@ public class UserProcess {
     //在打开或者新建文件时  会返回一个文件描述符  读写文件要使用文件描述符来指定读写的文件
     //若进程已打开相同的文件描述符 则不创建 返回该文件的文件描述符
 
-    protected int handleCreate(int filenameAddress) {
+    private int handleCreate(int filenameAddress) {
         //使用readVirtualMemoryString方法进行读取    读取虚拟内存中的文件名（根据 初始地址和长度）  根据地址  计算 页号 页偏移   找到 虚拟页对应的物理页
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
@@ -588,7 +588,7 @@ public class UserProcess {
         return -1;
     }
 
-    protected int handleOpen(int filenameAddress) {
+    private int handleOpen(int filenameAddress) {
         //从虚拟内存中读入文件名
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         if (filename == null) {
@@ -615,7 +615,7 @@ public class UserProcess {
 
     //参数为 文件描述符   内存地址  和读取的字节数
     //读取文件信息 将其 存续 该用户程序的虚拟内存中
-    protected int handleRead(int fileDescriptor, int virtualAddress, int bufferSize) {
+    private int handleRead(int fileDescriptor, int virtualAddress, int bufferSize) {
 
         if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0 || virtualAddress < 0) {
             Lib.debug(dbgProcess, "输入有误");
@@ -638,7 +638,7 @@ public class UserProcess {
     }
 
     //将信息从主存储写入文件
-    protected int handleWrite(int fileDescriptor, int virtualAddress, int bufferSize) {
+    private int handleWrite(int fileDescriptor, int virtualAddress, int bufferSize) {
 
         if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor || bufferSize < 0 || virtualAddress < 0) {
             Lib.debug(dbgProcess, "输入有误");
@@ -662,7 +662,7 @@ public class UserProcess {
     }
 
     //从该用户进程的文件描述符数组   移除此文件描述符
-    protected int handleClose(int fileDescriptor) {
+    private int handleClose(int fileDescriptor) {
 
         if (fileDescriptor < 0 || fileDescriptor >= MaxFileDescriptor) {
             return -1;
@@ -688,7 +688,7 @@ public class UserProcess {
     }
 
     //删除某个文件  根据传入的文件名内存地址   从虚拟存储中读出  文件名
-    protected int handleUnlink(int filenameAddress) {
+    private int handleUnlink(int filenameAddress) {
         //从虚拟内存中  取出文件名
         String filename = readVirtualMemoryString(filenameAddress, maxLength);
         boolean returnValue = true;
@@ -721,7 +721,7 @@ public class UserProcess {
      * @return
      */
 
-    protected int handleExec(int fileAddress, int argCount, int argAddress) {
+    private int handleExec(int fileAddress, int argCount, int argAddress) {
         if (argCount < 1)
             return -1;
         //根据文件地址  读取文件名
@@ -770,7 +770,7 @@ public class UserProcess {
      * @param addrStatus 保存子进程编号的地址
      * @return
      */
-    protected int handleJoin(int childPid, int addrStatus) {
+    private int handleJoin(int childPid, int addrStatus) {
         //检查是否是自己的子线程
         if (!childProcesses.contains(childPid)) {
             return -1;
@@ -810,7 +810,7 @@ public class UserProcess {
      *
      * @param exitStatus
      */
-    protected void handleExit(int exitStatus) {
+    private void handleExit(int exitStatus) {
 
         //清除打开文件表  关闭文件
         for (int i = 0; i < MaxFileDescriptor; ++i) {
@@ -835,7 +835,7 @@ public class UserProcess {
     }
 
     //根据线程id寻找对应的线程
-    protected static UserProcess findProcessByID(int id) {
+    private static UserProcess findProcessByID(int id) {
         return userProcessHashtable.get(id);
     }
 

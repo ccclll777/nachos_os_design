@@ -149,13 +149,13 @@ void broadcastFromClient(int clientNum) {
 
 	// If client disconnected, kill it
 	if (bytesRead == -1) {
-        printf("disconnecting client %d\n", clientNum);
-        close(clientSockets[clientNum]);
-        clientSockets[clientNum] = -1;
+//        printf("disconnecting client %d\n", clientNum);
+//        close(clientSockets[clientNum]);
+//        clientSockets[clientNum] = -1;
         return;
     }
     // Abort if no text received
-	if (bytesRead == 0) return;
+	if (bytesRead == 0 ) return;
 	
 	receivedEnd = 0;
 	// Else get all chars from client until next '/n'
